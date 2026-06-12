@@ -1,0 +1,6 @@
+# scratch screenshots from local testing
+_*.png
+
+# OS noise
+Thumbs.db
+.DS_Store
