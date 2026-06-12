@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Shape of American Work · 2020–2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="brand">
+    <span class="kicker">Workforce Pulse · Jan 2020 – Jan 2026</span>
+    <h1>The Shape of American Work</h1>
+    <p class="sub">How the U.S. labor market broke and rebuilt itself, state by state — participation, openings, quits and shortages across 73 months.</p>
+  </div>
+  <div class="top-actions">
+    <button id="aboutBtn" class="ghost-btn" title="Data notes &amp; definitions">ⓘ&nbsp;About the data</button>
+    <div class="view-toggle" id="viewToggle">
+      <button data-view="geo" class="active">Map</button>
+      <button data-view="grid">Grid</button>
+    </div>
+  </div>
+</header>
+
+<nav id="metricBar" aria-label="Choose a metric"></nav>
+
+<main>
+  <section id="mapWrap">
+    <svg id="map" viewBox="0 0 975 610" role="img" aria-label="United States choropleth"></svg>
+    <div id="legend"></div>
+    <div id="mapNote" hidden></div>
+  </section>
+  <aside id="panel"></aside>
+</main>
+
+<section id="timelineWrap">
+  <div id="chapters"></div>
+  <div class="tl-row">
+    <button id="playBtn" title="Play / pause (space)" aria-label="Play">
+      <svg viewBox="0 0 24 24" width="20" height="20"><path id="playIcon" d="M8 5v14l11-7z" fill="currentColor"/></svg>
+    </button>
+    <div class="tl-main">
+      <div class="tl-head">
+        <span id="periodLabel"></span>
+        <span id="caption"></span>
+      </div>
+      <svg id="timeline" viewBox="0 0 940 116" preserveAspectRatio="none"></svg>
+    </div>
+  </div>
+  <div class="hint">←&nbsp;→ step months &nbsp;·&nbsp; space plays &nbsp;·&nbsp; click any state for its story</div>
+</section>
+
+<div id="tooltip" hidden></div>
+
+<div id="modalBack" hidden>
+  <div id="modal" role="dialog" aria-modal="true" aria-label="About the data">
+    <button id="modalClose" class="ghost-btn">✕</button>
+    <h2>About the data</h2>
+    <p>State-level labor market indicators, monthly, January 2020 – January 2026 (51 jurisdictions: 50 states + DC). Counts are in thousands, seasonally adjusted. Source file: <em>State-Grid view.csv</em>.</p>
+    <ul>
+      <li><strong>Participation rate (LFPR)</strong> — share of the civilian 16+ population working or looking for work.</li>
+      <li><strong>“vs Feb 2020”</strong> — change versus February 2020, the last full pre-pandemic month (the dataset’s own baseline). Delta series begin in March 2020.</li>
+      <li><strong>Job openings rate</strong> — computed here as openings ÷ (employment + openings) × 100, the JOLTS definition.</li>
+      <li><strong>Unemployed per job opening</strong> — the dataset’s “Available Worker Ratio”. Below 1.0 means more openings than unemployed people: a labor <em>shortage</em>.</li>
+      <li><strong>Quit / hire rates</strong> — quits and hires as a share of employment (JOLTS).</li>
+      <li><strong>October 2025</strong> — no state data was published for this month (federal data gap); it is shown as a gap, not interpolated.</li>
+    </ul>
+    <p class="fine">Static ES-module app — D3 v7 + TopoJSON from CDN, data read straight from the CSV at load. No build step.</p>
+  </div>
+</div>
+
+<div id="toast" hidden></div>
+
+<script>
+/* ES modules (and fetch) are blocked on file:// pages, so the app below
+   can't even boot there. This classic script CAN run, so it explains
+   what to do instead of leaving a blank page. */
+if (location.protocol === 'file:') {
+  document.querySelector('main').innerHTML = `
+    <div class="load-error">
+      <h2>One more step — serve this folder</h2>
+      <p>This app loads <em>State-Grid view.csv</em> and its JS modules with
+      <code>fetch</code>, which browsers block on <code>file://</code> pages.
+      Start it over HTTP instead:</p>
+      <ul>
+        <li><strong>Double-click <code>start-app.cmd</code></strong> in this folder — starts a tiny
+            Node server and opens the app for you</li>
+        <li>or run <code>node serve.mjs</code> in a terminal here, then open
+            <code>http://localhost:8123/</code></li>
+        <li>or <code>python -m http.server</code>, then <code>http://localhost:8000/</code></li>
+        <li>VS Code users: the <em>Live Server</em> extension (if installed) also works —
+            right-click <code>index.html</code> → <em>Open with Live Server</em></li>
+      </ul>
+    </div>`;
+  document.getElementById('timelineWrap').hidden = true;
+  document.getElementById('metricBar').hidden = true;
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
