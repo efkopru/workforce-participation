@@ -27,6 +27,10 @@ directly shows instructions instead of a blank page). No build step, no
 dependencies to install — **editing the CSV and refreshing the page is all
 it takes to update the data.**
 
+Browser code uses versioned URLs for the entry module and recently changed
+imports. When updating those modules, bump their query versions and the entry
+version in `index.html` so cached JavaScript does not outlive the new page.
+
 ## What you can do
 
 - **Press play** (or space) and watch six years sweep across the map: the COVID

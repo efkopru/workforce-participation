@@ -3,7 +3,7 @@
    the store notifies components. */
 
 import { DATA_URL } from './config.js';
-import { loadData } from './data.js';
+import { loadData } from './data.js?v=20260920-snapshot';
 import { createStore } from './store.js';
 import { createActions } from './actions.js';
 import { initModal, isModalOpen, showLoadError } from './ui.js';
@@ -11,8 +11,8 @@ import { initialStateFromHash, bindPermalink } from './permalink.js';
 import { createMetricBar } from './components/metricBar.js';
 import { createViewToggle } from './components/viewToggle.js';
 import { createTooltip } from './components/tooltip.js';
-import { createMap } from './components/map.js';
-import { createTimeline } from './components/timeline.js';
+import { createMap } from './components/map.js?v=20260920-snapshot';
+import { createTimeline } from './components/timeline.js?v=20260920-snapshot';
 import { createChapters } from './components/chapters.js';
 import { createPanel } from './components/panel.js';
 
