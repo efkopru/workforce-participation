@@ -108,7 +108,7 @@ export function createMap(data, store, actions, tooltip) {
     const gapMonth = !fin(data.national.lfpr[i]);
     const preDelta = m.kind === 'div' && m.center === 0 && i <= data.baseIdx;
     note.attr('hidden', gapMonth || preDelta ? null : '')
-      .text(gapMonth ? 'No data published this month — federal data gap'
+      .text(gapMonth ? 'Observations for this month are missing from the supplied snapshot.'
           : preDelta ? 'Baseline months — deltas begin Mar 2020' : '');
   }
 

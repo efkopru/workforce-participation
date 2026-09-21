@@ -144,7 +144,7 @@ export function createTimeline(data, store, actions) {
 
     const m = metricById(s.metricId);
     if (!fin(data.national.lfpr[s.idx])) {
-      caption.text('No state data published this month (federal shutdown).');
+      caption.text('Observations for this month are missing from the supplied snapshot.');
       return;
     }
     const nat = m.fmt(data.national[m.col][s.idx]);

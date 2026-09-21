@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Explore a fixed January 2020 to January 2026 snapshot of U.S. state labor markets with interactive maps, timelines, and state comparisons.">
 <title>The Shape of American Work · 2020–2026</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -60,14 +61,14 @@
   <div id="modal" role="dialog" aria-modal="true" aria-label="About the data">
     <button id="modalClose" class="ghost-btn">✕</button>
     <h2>About the data</h2>
-    <p>State-level labor market indicators, monthly, January 2020 – January 2026 (51 jurisdictions: 50 states + DC). Counts are in thousands, seasonally adjusted. Source file: <em>State-Grid view.csv</em>.</p>
+    <p>A fixed snapshot of monthly state-level labor market indicators from January 2020 through January 2026 (51 jurisdictions: 50 states + DC). Counts are in thousands, seasonally adjusted. The app reads the supplied <em>State-Grid view.csv</em> file and does not fetch live data.</p>
     <ul>
       <li><strong>Participation rate (LFPR)</strong> — share of the civilian 16+ population working or looking for work.</li>
       <li><strong>“vs Feb 2020”</strong> — change versus February 2020, the last full pre-pandemic month (the dataset’s own baseline). Delta series begin in March 2020.</li>
       <li><strong>Job openings rate</strong> — computed here as openings ÷ (employment + openings) × 100, the JOLTS definition.</li>
       <li><strong>Unemployed per job opening</strong> — the dataset’s “Available Worker Ratio”. Below 1.0 means more openings than unemployed people: a labor <em>shortage</em>.</li>
       <li><strong>Quit / hire rates</strong> — quits and hires as a share of employment (JOLTS).</li>
-      <li><strong>October 2025</strong> — no state data was published for this month (federal data gap); it is shown as a gap, not interpolated.</li>
+      <li><strong>October 2025:</strong> observations are missing for all 51 jurisdictions in the supplied snapshot. This gap is shown without interpolation.</li>
     </ul>
     <p class="fine">Static ES-module app — D3 v7 + TopoJSON from CDN, data read straight from the CSV at load. No build step.</p>
   </div>
