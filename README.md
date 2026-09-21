@@ -1,7 +1,8 @@
 # The Shape of American Work
 
-An interactive atlas of the U.S. labor market, January 2020 – January 2026, reading
-`State-Grid view.csv` directly (51 jurisdictions × 73 months × 17 indicators).
+An interactive atlas of the U.S. labor market using a fixed dataset snapshot from
+January 2020 through January 2026. It reads `State-Grid view.csv` directly
+(51 jurisdictions × 73 months × 17 indicators). The app does not fetch live data.
 
 **▶ Live demo:** https://efkopru.github.io/workforce-participation/
 
@@ -34,7 +35,7 @@ it takes to update the data.**
   selected metric, so spikes show you where to look.
 - **Story chapters** — buttons computed *from the data*: peak national
   unemployment, peak quit rate, the tightest unemployed-per-opening ratio,
-  the Oct 2025 data gap, and today.
+  the Oct 2025 data gap, and the latest available month in the snapshot.
 - **Two map projections** — geographic (Albers) and an equal-size tile grid.
 - **Click any state** for sparklines vs. the national average, a live rank
   chip, and its line overlaid on the timeline.
@@ -89,7 +90,7 @@ center on the Feb 2020 baseline (white = back to normal).
 
 - Baseline for all "vs pre-pandemic" deltas is **February 2020**; delta series
   begin March 2020.
-- **October 2025 is missing for every state** (federal data gap). It is shown
-  as a gap — gray map, a hole in the trend lines — not interpolated.
+- **October 2025 observations are missing** for all 51 jurisdictions in the
+  supplied snapshot. The map and trend lines show this gap without interpolation.
 - Counts are in thousands, seasonally adjusted. National figures are
   recomputed from state sums (rates re-derived, not averaged).

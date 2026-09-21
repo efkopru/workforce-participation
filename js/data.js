@@ -158,8 +158,8 @@ function deriveChapters(nat, byState, periods, baseIdx) {
       blurb: `Just ${FMT.r2(nat.awr[shortage])} unemployed workers per job opening — employers can’t find people.` },
   ];
   if (gap > 0) chapters.push({ id: 'gap', idx: gap, title: 'The Data Gap', metric: null,
-    blurb: 'The statistics went dark — no state data published during the federal shutdown.' });
-  chapters.push({ id: 'today', idx: last, title: 'Today', metric: null,
+    blurb: 'Observations for this month are missing from the supplied snapshot.' });
+  chapters.push({ id: 'today', idx: last, title: 'Latest available', metric: null,
     blurb: `Participation ${FMT.pct1(nat.lfpr[last])}, unemployment ${FMT.pct1(nat.ur[last])}, ${FMT.r2(nat.awr[last])} unemployed per opening.` });
   return chapters;
 }
