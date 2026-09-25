@@ -4,3 +4,6 @@ _*.png
 # OS noise
 Thumbs.db
 .DS_Store
+
+# BLS bulk downloads used by update-data.mjs
+.bls-cache/

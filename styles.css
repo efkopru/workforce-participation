@@ -124,11 +124,13 @@ main {
   align-items: stretch;
 }
 
+/* The map sits on a light surface so its light-to-dark ramp reads naturally
+   (the palest values would vanish on the dark page). */
 #mapWrap {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
-  background: radial-gradient(120% 120% at 50% 0%, #131826 0%, var(--bg2) 55%);
+  background: #f3f6f9;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   overflow: hidden;
@@ -136,22 +138,23 @@ main {
 #map { display: block; width: 100%; height: auto; }
 
 #map .state {
-  stroke: rgba(11, 14, 20, 0.65);
+  stroke: rgba(255, 255, 255, 0.9);
   stroke-width: 0.75;
   transition: opacity 0.15s;
   cursor: pointer;
 }
-#map .state:hover { stroke: #fff; stroke-width: 1.4; }
-#map .state.selected { stroke: var(--cyan); stroke-width: 2.2; }
+#map .state:hover { stroke: #10131b; stroke-width: 1.4; }
+/* dark outline with a white halo stays visible on both pale and navy fills */
+#map .state.selected,
+#map .cell.selected rect { stroke: #10131b; stroke-width: 2.4; filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff); }
 
 #map .cell { cursor: pointer; }
 #map .cell rect {
-  stroke: rgba(11, 14, 20, 0.9);
+  stroke: #f3f6f9;
   stroke-width: 1.5;
   rx: 7px;
 }
-#map .cell:hover rect { stroke: #fff; }
-#map .cell.selected rect { stroke: var(--cyan); stroke-width: 2.5; }
+#map .cell:hover rect { stroke: #10131b; }
 #map .cell text { pointer-events: none; font-family: var(--sans); }
 #map .cell .abbr { font-size: 15px; font-weight: 700; }
 #map .cell .val { font-size: 9.5px; font-weight: 500; opacity: 0.85; }
@@ -162,7 +165,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--faint);
+  color: #5b6377;
   font-size: 13px;
   letter-spacing: 0.04em;
 }
@@ -172,40 +175,41 @@ main {
   position: absolute;
   left: 16px;
   bottom: 13px;
-  background: rgba(11, 14, 20, 0.72);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(6px);
-  border: 1px solid var(--line);
+  border: 1px solid rgba(16, 19, 27, 0.12);
   border-radius: 10px;
   padding: 9px 12px 8px;
   pointer-events: none;
 }
-#legend .lg-title { font-size: 11px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+#legend .lg-title { font-size: 11px; font-weight: 600; color: #10131b; margin-bottom: 6px; }
 #legend .lg-labels {
   display: flex;
   justify-content: space-between;
   font-size: 10px;
-  color: var(--muted);
+  color: #43505d;
   margin-top: 3px;
   font-variant-numeric: tabular-nums;
 }
-#legend .lg-nodata { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--muted); margin-top: 5px; }
+#legend .lg-nodata { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #43505d; margin-top: 5px; }
 #legend .lg-nodata i {
   width: 18px;
   height: 10px;
   border-radius: 2px;
-  border: 1px solid #5b6377;
-  background: repeating-linear-gradient(45deg, #5b6377 0 1.5px, #161b26 1.5px 4.2px);
+  border: 1px solid #9aa6b2;
+  background: repeating-linear-gradient(45deg, #9aa6b2 0 1.5px, #e7ecf1 1.5px 4.2px);
 }
-#legend .lg-note { font-size: 10px; color: var(--faint); margin-top: 4px; max-width: 230px; }
+#legend .lg-note { font-size: 10px; color: #5b6377; margin-top: 4px; max-width: 230px; }
 
 #mapNote {
   position: absolute;
   top: 12px;
   right: 14px;
+  max-width: min(420px, calc(100% - 28px));
   font-size: 11.5px;
-  color: var(--amber);
-  background: rgba(251, 191, 36, 0.08);
-  border: 1px solid rgba(251, 191, 36, 0.25);
+  color: #7c3f00;
+  background: #fff4dc;
+  border: 1px solid rgba(164, 92, 0, 0.3);
   padding: 5px 10px;
   border-radius: 8px;
 }
@@ -298,7 +302,7 @@ main {
 .rk-row:hover { background: var(--bg3); }
 .rk-row .rk-name { flex: 0 0 118px; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rk-row .rk-bar-wrap { flex: 1; height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden; }
-.rk-row .rk-bar { height: 100%; border-radius: 4px; }
+.rk-row .rk-bar { display: block; height: 100%; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28); }  /* outline keeps navy bars visible */
 .rk-row .rk-val { flex: 0 0 56px; text-align: right; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .rk-empty { color: var(--faint); font-size: 12px; padding: 6px 2px; }
 

@@ -3,16 +3,16 @@
    the store notifies components. */
 
 import { DATA_URL } from './config.js';
-import { loadData } from './data.js?v=20260925-colors';
+import { loadData } from './data.js?v=20260925-ylgnbu';
 import { createStore } from './store.js';
 import { createActions } from './actions.js';
 import { initModal, isModalOpen, showLoadError } from './ui.js';
 import { initialStateFromHash, bindPermalink } from './permalink.js';
 import { createMetricBar } from './components/metricBar.js';
 import { createViewToggle } from './components/viewToggle.js';
-import { createTooltip } from './components/tooltip.js';
-import { createMap } from './components/map.js?v=20260925-colors';
-import { createTimeline } from './components/timeline.js?v=20260920-snapshot';
+import { createTooltip } from './components/tooltip.js?v=20260925-ylgnbu';
+import { createMap } from './components/map.js?v=20260925-ylgnbu';
+import { createTimeline } from './components/timeline.js?v=20260925-ylgnbu';
 import { createChapters } from './components/chapters.js';
 import { createPanel } from './components/panel.js';
 
