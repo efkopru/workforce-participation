@@ -87,8 +87,11 @@ js/
 | Quit rate / Hire rate | share of employment (JOLTS) |
 
 Color scales are fixed across all 73 months (clamped at the 2nd–98th
-percentile), so colors stay comparable while animating. Diverging metrics
-center on the Feb 2020 baseline (white = back to normal).
+percentile), so colors stay comparable while animating. Every level metric
+uses one blue ramp (brighter = higher). Change metrics diverge from a dark
+gray midpoint at the Feb 2020 baseline (1.0 for unemployed per opening):
+red below it and blue above it, reversed for "Unemployed vs Feb ’20" so a
+rise in unemployment reads red. Missing months are hatched rather than colored.
 
 ## Data notes
 

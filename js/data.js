@@ -3,6 +3,15 @@
 
 import { STATE_INFO, METRICS, FMT, fin } from './config.js';
 
+/* Missing months are painted with a hatch pattern the map defines under this id,
+   so a gap can't be mistaken for a low value. */
+export const NO_DATA_ID = 'no-data';
+
+/* Diverging: red below the center ← dark neutral gray → blue above it (metrics
+   with `flip` reverse this). The dark midpoint keeps "no change" quiet instead of
+   making it the brightest state on the map. */
+const DIVERGING = d3.piecewise(d3.interpolateLab, ['#e66767', '#383835', '#3987e5']);
+
 /* CSV headers → short column keys used everywhere else */
 const COLUMNS = {
   pop:    'Population (thousands)',
@@ -38,8 +47,8 @@ export async function loadData(url) {
   return {
     periods, N: periods.length, baseIdx,
     byState, national, chapters,
-    /* fill color for a metric value (gray for missing months) */
-    fillFor: (metric, v) => fin(v) ? scales.get(metric.id).scale(v) : '#232936',
+    /* fill for a metric value (hatch pattern for missing months) */
+    fillFor: (metric, v) => fin(v) ? scales.get(metric.id).scale(v) : `url(#${NO_DATA_ID})`,
     domainOf: metric => scales.get(metric.id).domain,
     scaleOf: metric => scales.get(metric.id).scale,
   };
@@ -120,7 +129,7 @@ function buildScales(byState, N) {
       });
     } else {
       const lo = Math.min(p02, m.center), hi = Math.max(p98, m.center);
-      const interp = m.flip ? t => d3.interpolateRdBu(1 - t) : d3.interpolateRdBu;
+      const interp = m.flip ? t => DIVERGING(1 - t) : DIVERGING;
       scales.set(m.id, {
         scale: d3.scaleDiverging(interp).domain([lo, m.center, hi]).clamp(true),
         domain: [lo, m.center, hi],
