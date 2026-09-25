@@ -1,16 +1,15 @@
 /* Data layer: fetch the CSV, parse it, derive everything the app needs.
    Pure data — no DOM access. Returns one immutable `data` object. */
 
-import { STATE_INFO, METRICS, FMT, fin } from './config.js';
+import { STATE_INFO, METRICS, FMT, fin, fmtMonth } from './config.js';
 
 /* Missing months are painted with a hatch pattern the map defines under this id,
    so a gap can't be mistaken for a low value. */
 export const NO_DATA_ID = 'no-data';
 
-/* Diverging: red below the center ← dark neutral gray → blue above it (metrics
-   with `flip` reverse this). The dark midpoint keeps "no change" quiet instead of
-   making it the brightest state on the map. */
-const DIVERGING = d3.piecewise(d3.interpolateLab, ['#e66767', '#383835', '#3987e5']);
+/* Diverging: red below the center ← pale yellow → blue above it (metrics with
+   `flip` reverse this). The pale midpoint recedes into the light map. */
+const DIVERGING = d3.interpolateRdYlBu;
 
 /* CSV headers → short column keys used everywhere else */
 const COLUMNS = {
@@ -49,6 +48,8 @@ export async function loadData(url) {
     byState, national, chapters,
     /* fill for a metric value (hatch pattern for missing months) */
     fillFor: (metric, v) => fin(v) ? scales.get(metric.id).scale(v) : `url(#${NO_DATA_ID})`,
+    /* why a metric has no national value this month ('' when it has one) */
+    missingNote: (metric, i) => missingNote(metric, i, national, byState, periods, baseIdx),
     domainOf: metric => scales.get(metric.id).domain,
     scaleOf: metric => scales.get(metric.id).scale,
   };
@@ -89,20 +90,29 @@ function aggregateNational(byState, N, baseIdx) {
   const nat = Object.fromEntries(ALL_COLS.map(c => [c, new Float64Array(N).fill(NaN)]));
 
   for (let i = 0; i < N; i++) {
-    let pop = 0, lf = 0, emp = 0, unemp = 0, open = 0, quits = 0, hires = 0, ok = true;
+    /* Labor-force (LAUS) and job-openings (JOLTS) sums are independent: LAUS is
+       missing for Oct 2025, and state JOLTS ends before LAUS. Mixed ratios need both. */
+    let pop = 0, lf = 0, emp = 0, unemp = 0, open = 0, quits = 0, hires = 0;
+    let laus = true, jolts = true;
     for (const st of byState.values()) {
       const v = st.vals;
-      if (!fin(v.pop[i]) || !fin(v.lf[i])) { ok = false; break; }
-      pop += v.pop[i]; lf += v.lf[i]; emp += v.emp[i]; unemp += v.unemp[i];
-      open += v.open[i]; quits += v.quits[i]; hires += v.hires[i];
+      if (fin(v.pop[i]) && fin(v.lf[i]) && fin(v.emp[i]) && fin(v.unemp[i])) {
+        pop += v.pop[i]; lf += v.lf[i]; emp += v.emp[i]; unemp += v.unemp[i];
+      } else laus = false;
+      if (fin(v.open[i]) && fin(v.quits[i]) && fin(v.hires[i])) {
+        open += v.open[i]; quits += v.quits[i]; hires += v.hires[i];
+      } else jolts = false;
     }
-    if (!ok) continue;                       // Oct 2025 gap → stays NaN
-    nat.pop[i] = pop;     nat.lf[i] = lf;      nat.lfpr[i] = lf / pop * 100;
-    nat.emp[i] = emp;     nat.unemp[i] = unemp; nat.ur[i] = unemp / lf * 100;
-    nat.open[i] = open;   nat.openRate[i] = open / (emp + open) * 100;
-    nat.short[i] = unemp - open;              nat.awr[i] = unemp / open;
-    nat.quits[i] = quits; nat.quitR[i] = quits / emp * 100;
-    nat.hires[i] = hires; nat.hireR[i] = hires / emp * 100;
+    if (laus) {
+      nat.pop[i] = pop;     nat.lf[i] = lf;      nat.lfpr[i] = lf / pop * 100;
+      nat.emp[i] = emp;     nat.unemp[i] = unemp; nat.ur[i] = unemp / lf * 100;
+    }
+    if (jolts) { nat.open[i] = open; nat.quits[i] = quits; nat.hires[i] = hires; }
+    if (laus && jolts) {
+      nat.openRate[i] = open / (emp + open) * 100;
+      nat.short[i] = unemp - open;              nat.awr[i] = unemp / open;
+      nat.quitR[i] = quits / emp * 100;         nat.hireR[i] = hires / emp * 100;
+    }
   }
   for (let i = baseIdx + 1; i < N; i++) {
     nat.lfprD[i]  = nat.lfpr[i] - nat.lfpr[baseIdx];
@@ -110,6 +120,22 @@ function aggregateNational(byState, N, baseIdx) {
     nat.openD[i]  = (nat.open[i] / nat.open[baseIdx] - 1) * 100;
   }
   return nat;
+}
+
+/* ── missing-data notes ─────────────────────────────────────────── */
+function lastIndexWith(byState, col) {
+  let last = -1;
+  for (const st of byState.values())
+    for (let i = st.vals[col].length - 1; i > last; i--) if (fin(st.vals[col][i])) { last = i; break; }
+  return last;
+}
+
+function missingNote(metric, i, national, byState, periods, baseIdx) {
+  if (fin(national[metric.col][i])) return '';
+  if (metric.kind === 'div' && metric.center === 0 && i <= baseIdx) return 'Baseline months — deltas begin Mar 2020';
+  const last = lastIndexWith(byState, metric.col);
+  if (i > last) return `State job-openings, hires and quits data end in ${fmtMonth(periods[last])}; BLS publishes them once a year.`;
+  return 'BLS has not published state labor-force estimates for this month.';
 }
 
 /* ── color scales: fixed across all months, clamped at p2–p98 ───── */
@@ -167,8 +193,10 @@ function deriveChapters(nat, byState, periods, baseIdx) {
       blurb: `Just ${FMT.r2(nat.awr[shortage])} unemployed workers per job opening — employers can’t find people.` },
   ];
   if (gap > 0) chapters.push({ id: 'gap', idx: gap, title: 'The Data Gap', metric: null,
-    blurb: 'Observations for this month are missing from the supplied snapshot.' });
+    blurb: `BLS has not published state labor-force estimates for ${fmtMonth(periods[gap])}.` });
   chapters.push({ id: 'today', idx: last, title: 'Latest available', metric: null,
-    blurb: `Participation ${FMT.pct1(nat.lfpr[last])}, unemployment ${FMT.pct1(nat.ur[last])}, ${FMT.r2(nat.awr[last])} unemployed per opening.` });
+    blurb: fin(nat.awr[last])
+      ? `Participation ${FMT.pct1(nat.lfpr[last])}, unemployment ${FMT.pct1(nat.ur[last])}, ${FMT.r2(nat.awr[last])} unemployed per opening.`
+      : `Participation ${FMT.pct1(nat.lfpr[last])}, unemployment ${FMT.pct1(nat.ur[last])}. State job-openings data end in ${fmtMonth(periods[lastIndexWith(byState, 'open')])}.` });
   return chapters;
 }

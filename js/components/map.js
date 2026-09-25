@@ -3,7 +3,7 @@
    Owns the legend and the contextual map note. */
 
 import { MISSING, fin, dur, textOn, metricById } from '../config.js';
-import { NO_DATA_ID } from '../data.js?v=20260925-colors';
+import { NO_DATA_ID } from '../data.js?v=20260925-ylgnbu';
 
 const TOPO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json';
 /* ^ the -albers variant is pre-projected to the 975×610 viewBox */
@@ -40,7 +40,7 @@ export function createMap(data, store, actions, tooltip) {
       .attr('width', 6).attr('height', 6).attr('patternUnits', 'userSpaceOnUse')
       .attr('patternTransform', 'rotate(45)');
     p.append('rect').attr('width', 6).attr('height', 6).attr('fill', MISSING);
-    p.append('line').attr('y2', 6).attr('stroke', '#5b6377').attr('stroke-width', 1.5);
+    p.append('line').attr('y2', 6).attr('stroke', '#9aa6b2').attr('stroke-width', 1.5);
   }
 
   /* ── tile grid layer ──────────────────────────────────────────── */
@@ -81,7 +81,7 @@ export function createMap(data, store, actions, tooltip) {
         .on('click', (e, f) => actions.select(f.properties.name));
       gGeo.append('path')
         .attr('d', path(topojson.mesh(topo, topo.objects.states, (a, b) => a !== b)))
-        .attr('fill', 'none').attr('stroke', 'rgba(255,255,255,0.09)')
+        .attr('fill', 'none').attr('stroke', 'rgba(255,255,255,0.9)')
         .attr('stroke-width', 0.6).style('pointer-events', 'none');
 
       renderFills(store.get(), 0);
@@ -98,8 +98,10 @@ export function createMap(data, store, actions, tooltip) {
     const m = metricById(s.metricId), i = s.idx;
     const tween = sel => ms > 0 ? sel.transition('fill').duration(ms) : sel;
 
-    tween(gGeo.selectAll('path.state')
-        .classed('selected', f => f.properties.name === s.selected))
+    const states = gGeo.selectAll('path.state')
+      .classed('selected', f => f.properties.name === s.selected);
+    states.filter('.selected').raise();         // keep its outline above the neighbours
+    tween(states)
       .attr('fill', f => data.fillFor(m, data.byState.get(f.properties.name).vals[m.col][i]));
 
     const cells = gGrid.selectAll('g.cell')
@@ -116,11 +118,8 @@ export function createMap(data, store, actions, tooltip) {
   }
 
   function renderNote(s, m, i) {
-    const gapMonth = !fin(data.national.lfpr[i]);
-    const preDelta = m.kind === 'div' && m.center === 0 && i <= data.baseIdx;
-    note.attr('hidden', gapMonth || preDelta ? null : '')
-      .text(gapMonth ? 'Observations for this month are missing from the supplied snapshot.'
-          : preDelta ? 'Baseline months — deltas begin Mar 2020' : '');
+    const text = data.missingNote(m, i);
+    note.attr('hidden', text ? null : '').text(text);
   }
 
   function renderLegend(s) {

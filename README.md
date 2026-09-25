@@ -1,8 +1,9 @@
 # The Shape of American Work
 
-An interactive atlas of the U.S. labor market using a fixed dataset snapshot from
-January 2020 through January 2026. It reads `State-Grid view.csv` directly
-(51 jurisdictions × 73 months × 17 indicators). The app does not fetch live data.
+An interactive atlas of the U.S. labor market from January 2020 through
+August 2026, built from U.S. Bureau of Labor Statistics data. It reads
+`State-Grid view.csv` directly (51 jurisdictions × 80 months × 17 indicators).
+The app does not fetch live data.
 
 **▶ Live demo:** https://efkopru.github.io/workforce-participation/
 
@@ -33,13 +34,13 @@ version in `index.html` so cached JavaScript does not outlive the new page.
 
 ## What you can do
 
-- **Press play** (or space) and watch six years sweep across the map: the COVID
+- **Press play** (or space) and watch the years sweep across the map: the COVID
   shock, the Great Resignation, the labor-shortage era, the recovery.
 - **Scrub the timeline** — it doubles as a chart of the national trend for the
   selected metric, so spikes show you where to look.
 - **Story chapters** — buttons computed *from the data*: peak national
   unemployment, peak quit rate, the tightest unemployed-per-opening ratio,
-  the Oct 2025 data gap, and the latest available month in the snapshot.
+  the Oct 2025 data gap, and the latest available month.
 - **Two map projections** — geographic (Albers) and an equal-size tile grid.
 - **Click any state** for sparklines vs. the national average, a live rank
   chip, and its line overlaid on the timeline.
@@ -86,18 +87,42 @@ js/
 | Unemployed per opening | the dataset's "Available Worker Ratio" — **below 1.0 = labor shortage** |
 | Quit rate / Hire rate | share of employment (JOLTS) |
 
-Color scales are fixed across all 73 months (clamped at the 2nd–98th
-percentile), so colors stay comparable while animating. Every level metric
-uses one blue ramp (brighter = higher). Change metrics diverge from a dark
-gray midpoint at the Feb 2020 baseline (1.0 for unemployed per opening):
-red below it and blue above it, reversed for "Unemployed vs Feb ’20" so a
-rise in unemployment reads red. Missing months are hatched rather than colored.
+Color scales are fixed across all months (clamped at the 2nd–98th
+percentile), so colors stay comparable while animating. The map sits on a light
+surface: every level metric uses one yellow–green–blue ramp (light = low,
+dark = high). Change metrics diverge from a pale midpoint at the Feb 2020
+baseline (1.0 for unemployed per opening): red below it and blue above it,
+reversed for "Unemployed vs Feb ’20" so a rise in unemployment reads red.
+Missing months are hatched rather than colored.
 
 ## Data notes
 
 - Baseline for all "vs pre-pandemic" deltas is **February 2020**; delta series
   begin March 2020.
-- **October 2025 observations are missing** for all 51 jurisdictions in the
-  supplied snapshot. The map and trend lines show this gap without interpolation.
-- Counts are in thousands, seasonally adjusted. National figures are
-  recomputed from state sums (rates re-derived, not averaged).
+- **Sources:** BLS Local Area Unemployment Statistics (population, labor
+  force, participation, employment, unemployment) and state Job Openings and
+  Labor Turnover Survey estimates (openings, hires, quits). Rebuilt on
+  September 25, 2026; August 2026 LAUS figures are preliminary.
+- **October 2025:** BLS has not published state LAUS estimates, so
+  participation and unemployment are missing for all 51 jurisdictions. Job
+  openings, hires and quits exist for that month. Gaps are never interpolated.
+- **Job openings, hires and quits end in December 2025.** BLS now publishes
+  state JOLTS once a year, adding the prior year's monthly figures, so 2026
+  months stay empty until the next annual release.
+- Counts are in thousands, seasonally adjusted (population is not). National
+  figures are recomputed from state sums (rates re-derived, not averaged).
+
+## Updating the data
+
+`update-data.mjs` rebuilds `State-Grid view.csv` from the BLS bulk files,
+keeping the same columns and derived definitions (deltas vs Feb 2020, openings
+rate inputs, unemployed per opening, shortage or surplus). BLS asks automated
+downloads to identify a contact email:
+
+```powershell
+$env:BLS_CONTACT = 'you@example.com'; node update-data.mjs
+```
+
+Downloads are cached in `.bls-cache/` (git-ignored); without `BLS_CONTACT` the
+script rebuilds from the cache. Afterwards, update the date range in
+`index.html` (header, description, About text) and in this README.

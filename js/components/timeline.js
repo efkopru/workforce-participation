@@ -143,8 +143,9 @@ export function createTimeline(data, store, actions) {
     caption.classed('chapter', false);
 
     const m = metricById(s.metricId);
-    if (!fin(data.national.lfpr[s.idx])) {
-      caption.text('Observations for this month are missing from the supplied snapshot.');
+    const missing = data.missingNote(m, s.idx);
+    if (missing) {
+      caption.text(missing);
       return;
     }
     const nat = m.fmt(data.national[m.col][s.idx]);

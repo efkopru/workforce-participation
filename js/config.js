@@ -23,7 +23,7 @@ export const STATE_INFO = {
 };
 
 export const DATA_URL = encodeURI('State-Grid view.csv');
-export const MISSING = '#161b26';          // base of the hatched "no data" fill (Oct 2025 gap)
+export const MISSING = '#e7ecf1';          // base of the hatched "no data" fill on the light map
 
 export const fin = v => v != null && isFinite(v);
 
@@ -44,10 +44,9 @@ export const FMT = {
                                  : d3.format(',.0f')(v) + 'K') : '—',
 };
 
-/* One blue ramp for every level metric: brighter = higher. Its darkest step
-   stays visible on the dark map panel instead of sinking into the background. */
-const SEQUENTIAL = d3.piecewise(d3.interpolateLab,
-  ['#104281', '#1c5cab', '#3987e5', '#86b6ef', '#cde2fb']);
+/* One yellow–green–blue ramp for every level metric: light = low, dark = high.
+   The palest 6% is skipped so the lowest states still stand out on the light map. */
+const SEQUENTIAL = t => d3.interpolateYlGnBu(0.06 + 0.94 * t);
 
 /* ── metric catalogue ───────────────────────────────────────────────
    col    → key into the per-state / national value arrays
