@@ -3,6 +3,7 @@
    Owns the legend and the contextual map note. */
 
 import { MISSING, fin, dur, textOn, metricById } from '../config.js';
+import { NO_DATA_ID } from '../data.js?v=20260925-colors';
 
 const TOPO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json';
 /* ^ the -albers variant is pre-projected to the 975×610 viewBox */
@@ -13,6 +14,7 @@ const GRID_Y = 8;
 
 export function createMap(data, store, actions, tooltip) {
   const svg = d3.select('#map');
+  defineNoDataPattern();
   const gGeo = svg.append('g').attr('class', 'g-geo');
   const gGrid = svg.append('g').attr('class', 'g-grid');
   const legend = d3.select('#legend');
@@ -32,6 +34,15 @@ export function createMap(data, store, actions, tooltip) {
   renderFills(store.get(), 0);
   applyView(store.get(), true);          // grid first; crossfade when shapes load
 
+  /* 45° hatch for missing months, distinct from every value color */
+  function defineNoDataPattern() {
+    const p = svg.append('defs').append('pattern').attr('id', NO_DATA_ID)
+      .attr('width', 6).attr('height', 6).attr('patternUnits', 'userSpaceOnUse')
+      .attr('patternTransform', 'rotate(45)');
+    p.append('rect').attr('width', 6).attr('height', 6).attr('fill', MISSING);
+    p.append('line').attr('y2', 6).attr('stroke', '#5b6377').attr('stroke-width', 1.5);
+  }
+
   /* ── tile grid layer ──────────────────────────────────────────── */
   function buildGrid() {
     const cells = gGrid.selectAll('g.cell')
@@ -41,7 +52,7 @@ export function createMap(data, store, actions, tooltip) {
       .on('pointermove', (e, d) => tooltip.show(e, d.name))
       .on('pointerleave', tooltip.hide)
       .on('click', (e, d) => actions.select(d.name));
-    cells.append('rect').attr('width', CELL).attr('height', CELL).attr('rx', 8).attr('fill', MISSING);
+    cells.append('rect').attr('width', CELL).attr('height', CELL).attr('rx', 8).attr('fill', `url(#${NO_DATA_ID})`);
     cells.append('text').attr('class', 'abbr').attr('x', CELL / 2).attr('y', CELL / 2 - 2)
       .attr('text-anchor', 'middle').text(d => d.abbr);
     cells.append('text').attr('class', 'val').attr('x', CELL / 2).attr('y', CELL / 2 + 16)
@@ -64,7 +75,7 @@ export function createMap(data, store, actions, tooltip) {
       gGeo.selectAll('path.state').data(features, f => f.properties.name).join('path')
         .attr('class', 'state')
         .attr('d', path)
-        .attr('fill', MISSING)
+        .attr('fill', `url(#${NO_DATA_ID})`)
         .on('pointermove', (e, f) => tooltip.show(e, f.properties.name))
         .on('pointerleave', tooltip.hide)
         .on('click', (e, f) => actions.select(f.properties.name));
@@ -124,6 +135,7 @@ export function createMap(data, store, actions, tooltip) {
       <div class="lg-title">${m.label}</div>
       <div style="width:230px;height:10px;border-radius:5px;background:linear-gradient(to right,${stops.join(',')})"></div>
       <div class="lg-labels"><span>${labels[0]}</span><span>${labels[1]}</span><span>${labels[2]}</span></div>
+      <div class="lg-nodata"><i></i>No data</div>
       ${m.note ? `<div class="lg-note">${m.note}</div>` : ''}`);
   }
 

@@ -23,7 +23,7 @@ export const STATE_INFO = {
 };
 
 export const DATA_URL = encodeURI('State-Grid view.csv');
-export const MISSING = '#232936';          // fill for "no data" (Oct 2025 gap)
+export const MISSING = '#161b26';          // base of the hatched "no data" fill (Oct 2025 gap)
 
 export const fin = v => v != null && isFinite(v);
 
@@ -44,26 +44,31 @@ export const FMT = {
                                  : d3.format(',.0f')(v) + 'K') : '—',
 };
 
+/* One blue ramp for every level metric: brighter = higher. Its darkest step
+   stays visible on the dark map panel instead of sinking into the background. */
+const SEQUENTIAL = d3.piecewise(d3.interpolateLab,
+  ['#104281', '#1c5cab', '#3987e5', '#86b6ef', '#cde2fb']);
+
 /* ── metric catalogue ───────────────────────────────────────────────
    col    → key into the per-state / national value arrays
    kind   → 'seq' (sequential scale) or 'div' (diverging around center)
-   flip   → diverging only: reverse RdBu so HIGH values read red (bad)
+   flip   → diverging only: reverse the ramp so HIGH values read red (worse)
    fmt    → value formatter; cell → compact label for grid tiles      */
 export const METRICS = [
   { id: 'lfpr', col: 'lfpr', label: 'Participation rate', kind: 'seq',
-    interp: d3.interpolateViridis, fmt: FMT.pct1, cell: v => v.toFixed(1),
+    interp: SEQUENTIAL, fmt: FMT.pct1, cell: v => v.toFixed(1),
     note: 'Share of the 16+ population in the labor force' },
   { id: 'lfprD', col: 'lfprD', label: 'Participation vs Feb ’20', kind: 'div', center: 0,
     fmt: FMT.pp, cell: v => (v > 0 ? '+' : '') + v.toFixed(1),
     note: 'Percentage points vs Feb 2020 · deltas begin Mar 2020' },
   { id: 'ur', col: 'ur', label: 'Unemployment rate', kind: 'seq',
-    interp: d3.interpolateInferno, fmt: FMT.pct1, cell: v => v.toFixed(1),
+    interp: SEQUENTIAL, fmt: FMT.pct1, cell: v => v.toFixed(1),
     note: 'Unemployed share of the labor force' },
   { id: 'unempD', col: 'unempD', label: 'Unemployed vs Feb ’20', kind: 'div', center: 0, flip: true,
     fmt: FMT.pctS, cell: v => (v > 0 ? '+' : '') + d3.format('.0f')(v),
     note: '% change in number unemployed vs Feb 2020' },
   { id: 'openRate', col: 'openRate', label: 'Job openings rate', kind: 'seq',
-    interp: d3.interpolatePlasma, fmt: FMT.pct1, cell: v => v.toFixed(1),
+    interp: SEQUENTIAL, fmt: FMT.pct1, cell: v => v.toFixed(1),
     note: 'Openings ÷ (employment + openings) — JOLTS definition' },
   { id: 'openD', col: 'openD', label: 'Openings vs Feb ’20', kind: 'div', center: 0,
     fmt: FMT.pctS, cell: v => (v > 0 ? '+' : '') + d3.format('.0f')(v),
@@ -72,17 +77,25 @@ export const METRICS = [
     fmt: FMT.r2, cell: v => v.toFixed(2),
     note: '◀ shortage of workers · slack labor market ▶' },
   { id: 'quitR', col: 'quitR', label: 'Quit rate', kind: 'seq',
-    interp: d3.interpolateMagma, fmt: FMT.pct1, cell: v => v.toFixed(1),
+    interp: SEQUENTIAL, fmt: FMT.pct1, cell: v => v.toFixed(1),
     note: 'Voluntary quits as a share of employment' },
   { id: 'hireR', col: 'hireR', label: 'Hire rate', kind: 'seq',
-    interp: d3.interpolateCividis, fmt: FMT.pct1, cell: v => v.toFixed(1),
+    interp: SEQUENTIAL, fmt: FMT.pct1, cell: v => v.toFixed(1),
     note: 'Hires as a share of employment' },
 ];
 
 export const metricById = id => METRICS.find(m => m.id === id);
 
-/* black or white label text, whichever reads on the given fill */
+/* dark or light label text, whichever has more WCAG contrast on the given fill */
+const luminance = c => {
+  const { r, g, b } = d3.rgb(c);
+  const lin = v => (v /= 255) <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  return 0.2126 * lin(r) + 0.7152 * lin(g) + 0.0722 * lin(b);
+};
+const INK_DARK = '#10131b', INK_LIGHT = '#f2f4f8';
+const Y_DARK = luminance(INK_DARK), Y_LIGHT = luminance(INK_LIGHT);
 export const textOn = c => {
-  try { return d3.lab(c).l > 58 ? '#10131b' : '#f2f4f8'; }
-  catch { return '#f2f4f8'; }
+  const y = luminance(c);
+  if (!Number.isFinite(y)) return INK_LIGHT;       // pattern fills: the no-data hatch is dark
+  return (y + 0.05) / (Y_DARK + 0.05) >= (Y_LIGHT + 0.05) / (y + 0.05) ? INK_DARK : INK_LIGHT;
 };

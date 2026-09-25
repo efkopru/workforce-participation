@@ -188,6 +188,14 @@ main {
   margin-top: 3px;
   font-variant-numeric: tabular-nums;
 }
+#legend .lg-nodata { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--muted); margin-top: 5px; }
+#legend .lg-nodata i {
+  width: 18px;
+  height: 10px;
+  border-radius: 2px;
+  border: 1px solid #5b6377;
+  background: repeating-linear-gradient(45deg, #5b6377 0 1.5px, #161b26 1.5px 4.2px);
+}
 #legend .lg-note { font-size: 10px; color: var(--faint); margin-top: 4px; max-width: 230px; }
 
 #mapNote {
