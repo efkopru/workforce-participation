@@ -136,6 +136,11 @@ main {
   overflow: hidden;
 }
 #map { display: block; width: 100%; height: auto; }
+/* Side-by-side layouts draw the map at 75% of its panel, centered, so it does not dominate the page. */
+@media (min-width: 1021px) {
+  #mapWrap { display: flex; align-items: center; justify-content: center; }
+  #map { width: 75%; }
+}
 
 #map .state {
   stroke: rgba(255, 255, 255, 0.9);
@@ -363,7 +368,7 @@ main {
 #playBtn:hover { transform: scale(1.07); box-shadow: 0 6px 22px rgba(251, 191, 36, 0.4); }
 
 .tl-main { flex: 1; min-width: 0; }
-.tl-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 2px; }
+.tl-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; margin-bottom: 2px; }  /* caption wraps below the month on phones */
 #periodLabel {
   font-family: var(--serif);
   font-size: 21px;
