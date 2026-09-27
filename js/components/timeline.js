@@ -5,13 +5,14 @@
 
 import { fin, fmtMonth, metricById } from '../config.js';
 
-const H = 116;
+const H = 68;
 const M = { t: 8, r: 12, b: 20, l: 12 };
 
 export function createTimeline(data, store, actions) {
   const svg = d3.select('#timeline');
   const periodLabel = d3.select('#periodLabel');
   const caption = d3.select('#caption');
+  const legend = d3.select('#tlLegend');
   let x, y, cursor, natDot;            // chart internals, rebuilt by build()
 
   d3.select('#playBtn').on('click', actions.togglePlay);
@@ -77,18 +78,11 @@ export function createTimeline(data, store, actions) {
     svg.append('path').datum(nat).attr('d', line)
       .attr('fill', 'none').attr('stroke', '#fbbf24').attr('stroke-width', 1.8);
 
-    if (sel) {
-      svg.append('path').datum(sel).attr('d', line)
-        .attr('fill', 'none').attr('stroke', '#67e8f9').attr('stroke-width', 1.6);
-      const lg = svg.append('g').attr('font-size', 10)
-        .attr('transform', `translate(${M.l + 6},${M.t + 4})`);
-      lg.append('rect').attr('x', -4).attr('y', -8).attr('width', 150).attr('height', 28)
-        .attr('rx', 5).attr('fill', 'rgba(11,14,20,0.6)');
-      lg.append('line').attr('x2', 14).attr('stroke', '#fbbf24').attr('stroke-width', 2);
-      lg.append('text').attr('x', 18).attr('y', 3).attr('fill', '#8b93a7').text('United States');
-      lg.append('line').attr('x2', 14).attr('y1', 13).attr('y2', 13).attr('stroke', '#67e8f9').attr('stroke-width', 2);
-      lg.append('text').attr('x', 18).attr('y', 16).attr('fill', '#8b93a7').text(s.selected);
-    }
+    if (sel) svg.append('path').datum(sel).attr('d', line)
+      .attr('fill', 'none').attr('stroke', '#67e8f9').attr('stroke-width', 1.6);
+    /* the key sits beside the caption, where it cannot cover the 2020 lines */
+    legend.attr('hidden', sel ? null : '')
+      .html(sel ? `<i style="background:#fbbf24"></i>United States<i style="background:#67e8f9"></i>${s.selected}` : '');
 
     /* chapter markers on the axis */
     svg.selectAll('circle.ch').data(data.chapters).join('circle').attr('class', 'ch')

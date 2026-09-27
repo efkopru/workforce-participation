@@ -11,10 +11,10 @@ import { initialStateFromHash, bindPermalink } from './permalink.js';
 import { createMetricBar } from './components/metricBar.js';
 import { createViewToggle } from './components/viewToggle.js';
 import { createTooltip } from './components/tooltip.js?v=20260926-oct';
-import { createMap } from './components/map.js?v=20260926-oct';
-import { createTimeline } from './components/timeline.js?v=20260926-oct';
+import { createMap } from './components/map.js?v=20260927-fit';
+import { createTimeline } from './components/timeline.js?v=20260927-fit';
 import { createChapters } from './components/chapters.js';
-import { createPanel } from './components/panel.js?v=20260926-layout';
+import { createPanel } from './components/panel.js?v=20260927-fit';
 
 async function boot() {
   let data;
