@@ -149,9 +149,10 @@ export function createTimeline(data, store, actions) {
       return;
     }
     const nat = m.fmt(data.national[m.col][s.idx]);
+    const estimate = data.estimateNote(m, s.idx) ? ' (interpolated)' : '';
     caption.text(s.selected
-      ? `${s.selected}: ${m.fmt(data.byState.get(s.selected).vals[m.col][s.idx])} · United States: ${nat}`
-      : `United States · ${m.label}: ${nat}`);
+      ? `${s.selected}: ${m.fmt(data.byState.get(s.selected).vals[m.col][s.idx])} · United States: ${nat}${estimate}`
+      : `United States · ${m.label}: ${nat}${estimate}`);
   }
 
   function renderPlayIcon(s) {

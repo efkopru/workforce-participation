@@ -3,7 +3,7 @@
    Owns the legend and the contextual map note. */
 
 import { MISSING, fin, dur, textOn, metricById } from '../config.js';
-import { NO_DATA_ID } from '../data.js?v=20260925-ylgnbu';
+import { NO_DATA_ID } from '../data.js?v=20260926-oct';
 
 const TOPO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json';
 /* ^ the -albers variant is pre-projected to the 975×610 viewBox */
@@ -118,7 +118,7 @@ export function createMap(data, store, actions, tooltip) {
   }
 
   function renderNote(s, m, i) {
-    const text = data.missingNote(m, i);
+    const text = data.missingNote(m, i) || data.estimateNote(m, i);
     note.attr('hidden', text ? null : '').text(text);
   }
 
@@ -132,7 +132,7 @@ export function createMap(data, store, actions, tooltip) {
       : [m.fmt(domain[0]), '', m.fmt(domain[1])];
     legend.html(`
       <div class="lg-title">${m.label}</div>
-      <div style="width:230px;height:10px;border-radius:5px;background:linear-gradient(to right,${stops.join(',')})"></div>
+      <div class="lg-bar" style="background:linear-gradient(to right,${stops.join(',')})"></div>
       <div class="lg-labels"><span>${labels[0]}</span><span>${labels[1]}</span><span>${labels[2]}</span></div>
       <div class="lg-nodata"><i></i>No data</div>
       ${m.note ? `<div class="lg-note">${m.note}</div>` : ''}`);

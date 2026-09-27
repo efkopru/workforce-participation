@@ -1,7 +1,7 @@
 /* Data layer: fetch the CSV, parse it, derive everything the app needs.
    Pure data — no DOM access. Returns one immutable `data` object. */
 
-import { STATE_INFO, METRICS, FMT, fin, fmtMonth } from './config.js';
+import { STATE_INFO, METRICS, FMT, fin, fmtMonth, fmtMonYr } from './config.js';
 
 /* Missing months are painted with a hatch pattern the map defines under this id,
    so a gap can't be mistaken for a low value. */
@@ -39,17 +39,22 @@ export async function loadData(url) {
   const text = await res.text();
 
   const { periods, byState, baseIdx } = parseRows(d3.csvParse(text));
+  const estimated = fillInteriorGaps(byState, periods.length);
   const national = aggregateNational(byState, periods.length, baseIdx);
   const scales = buildScales(byState, periods.length);
   const chapters = deriveChapters(national, byState, periods, baseIdx);
 
   return {
     periods, N: periods.length, baseIdx,
-    byState, national, chapters,
+    byState, national, chapters, estimated,
     /* fill for a metric value (hatch pattern for missing months) */
     fillFor: (metric, v) => fin(v) ? scales.get(metric.id).scale(v) : `url(#${NO_DATA_ID})`,
     /* why a metric has no national value this month ('' when it has one) */
     missingNote: (metric, i) => missingNote(metric, i, national, byState, periods, baseIdx),
+    /* label for months whose labor-force values were interpolated ('' otherwise) */
+    estimateNote: (metric, i) => estimated.has(i) && !JOLTS_ONLY.has(metric.col)
+      ? `${fmtMonth(periods[i])} is interpolated (not published by BLS).`
+      : '',
     domainOf: metric => scales.get(metric.id).domain,
     scaleOf: metric => scales.get(metric.id).scale,
   };
@@ -122,6 +127,44 @@ function aggregateNational(byState, N, baseIdx) {
   return nat;
 }
 
+/* ── interpolated months ────────────────────────────────────────── */
+/* BLS did not publish October 2025 state labor-force (LAUS) estimates. A labor-force gap with
+   published months on both sides is filled by straight-line interpolation and recorded so the
+   app can label it; trailing gaps, such as 2026 JOLTS, stay empty. Ratios that mix labor-force
+   and job-openings values are recomputed from the filled values. */
+const INTERPOLATED = ['pop', 'lf', 'lfpr', 'lfprD', 'emp', 'unemp', 'unempD', 'ur'];
+const JOLTS_ONLY = new Set(['openD', 'quitR', 'hireR']);
+
+function fillInteriorGaps(byState, N) {
+  const months = new Set();
+  for (const st of byState.values()) {
+    const filled = new Set();
+    for (const col of INTERPOLATED) {
+      const v = st.vals[col];
+      for (let i = 1; i < N - 1; i++) {
+        if (fin(v[i]) || !fin(v[i - 1])) continue;
+        let next = i + 1;
+        while (next < N && !fin(v[next])) next++;
+        if (next >= N) break;
+        for (let k = i; k < next; k++) {
+          v[k] = v[i - 1] + (v[next] - v[i - 1]) * (k - i + 1) / (next - i + 1);
+          filled.add(k);
+          months.add(k);
+        }
+        i = next;
+      }
+    }
+    for (const i of filled) {
+      const { unemp, open, emp } = st.vals;
+      if (!fin(unemp[i]) || !fin(open[i])) continue;
+      st.vals.awr[i] = unemp[i] / open[i];
+      st.vals.short[i] = unemp[i] - open[i];
+      if (fin(emp[i])) st.vals.openRate[i] = open[i] / (emp[i] + open[i]) * 100;
+    }
+  }
+  return months;
+}
+
 /* ── missing-data notes ─────────────────────────────────────────── */
 function lastIndexWith(byState, col) {
   let last = -1;
@@ -134,7 +177,7 @@ function missingNote(metric, i, national, byState, periods, baseIdx) {
   if (fin(national[metric.col][i])) return '';
   if (metric.kind === 'div' && metric.center === 0 && i <= baseIdx) return 'Baseline months — deltas begin Mar 2020';
   const last = lastIndexWith(byState, metric.col);
-  if (i > last) return `State job-openings, hires and quits data end in ${fmtMonth(periods[last])}; BLS publishes them once a year.`;
+  if (i > last) return `Job-openings data end ${fmtMonYr(periods[last])} (BLS updates yearly).`;
   return 'BLS has not published state labor-force estimates for this month.';
 }
 
