@@ -5,16 +5,16 @@
 import { DATA_URL } from './config.js';
 import { loadData } from './data.js?v=20260926-oct';
 import { createStore } from './store.js';
-import { createActions } from './actions.js?v=20260927-theme';
-import { initModal, initTheme, isModalOpen, showLoadError } from './ui.js?v=20260927-theme';
+import { createActions } from './actions.js?v=20260927-light';
+import { initModal, initTheme, isModalOpen, showLoadError } from './ui.js?v=20260927-light';
 import { initialStateFromHash, bindPermalink } from './permalink.js';
-import { createMetricBar } from './components/metricBar.js?v=20260927-theme';
-import { createViewToggle } from './components/viewToggle.js?v=20260927-theme';
+import { createMetricBar } from './components/metricBar.js?v=20260927-light';
+import { createViewToggle } from './components/viewToggle.js?v=20260927-light';
 import { createTooltip } from './components/tooltip.js?v=20260926-oct';
 import { createMap } from './components/map.js?v=20260927-fit';
-import { createTimeline } from './components/timeline.js?v=20260927-theme';
-import { createChapters } from './components/chapters.js?v=20260927-theme';
-import { createPanel } from './components/panel.js?v=20260927-theme';
+import { createTimeline } from './components/timeline.js?v=20260927-light';
+import { createChapters } from './components/chapters.js?v=20260927-light';
+import { createPanel } from './components/panel.js?v=20260927-light';
 
 async function boot() {
   initTheme();                    // before the data loads, so the switch always works

@@ -18,31 +18,26 @@ export function initModal() {
 
 export const isModalOpen = () => !document.getElementById('modalBack').hidden;
 
-/* Light/dark theme. An inline script in index.html applies the saved or system
-   theme before first paint; this wires the header switch, remembers the choice,
-   and follows system changes until the visitor picks a theme. All colours come
-   from CSS variables, so nothing needs redrawing. */
+/* Light/dark theme. Light is the default; an inline script in index.html applies
+   a saved choice before first paint. This wires the header switch and remembers
+   the choice. All colours come from CSS variables, so nothing needs redrawing. */
 const THEME_KEY = 'atlas-theme';
 
 export function initTheme() {
   const root = document.documentElement;
   const btn = d3.select('#themeBtn');
-  const saved = () => { try { return localStorage.getItem(THEME_KEY); } catch { return null; } };
   const apply = theme => {
     root.setAttribute('data-theme', theme);
-    const label = `Switch to ${theme === 'light' ? 'dark' : 'light'} theme`;
+    const label = `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`;
     btn.attr('aria-label', label).attr('title', label);
   };
 
   btn.on('click', () => {
-    const theme = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+    const theme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
     try { localStorage.setItem(THEME_KEY, theme); } catch { /* private mode: not remembered */ }
     apply(theme);
   });
-  matchMedia('(prefers-color-scheme: light)').addEventListener('change', e => {
-    if (!saved()) apply(e.matches ? 'light' : 'dark');
-  });
-  apply(root.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+  apply(root.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
 }
 
 /* On phones the metric and chapter buttons scroll sideways in one row; keep the

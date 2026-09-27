@@ -46,7 +46,7 @@ version in `index.html` so cached JavaScript does not outlive the new page.
   chip, and its line overlaid on the timeline.
 - **Share what you see** — the URL hash tracks your view, e.g.
   `#m=ur&t=2020-04&s=Michigan` (metric · month · state · `&v=grid` for grid view).
-- **Light and dark themes** — opens in the system's theme; the sun/moon button
+- **Light and dark themes** — opens in the light theme; the moon/sun button
   switches and the choice is remembered in the browser.
 - **Phones and tablets** — the layout stacks, the metric and chapter buttons
   scroll sideways in one row, and dragging across the timeline or a state's
