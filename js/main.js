@@ -14,7 +14,7 @@ import { createTooltip } from './components/tooltip.js?v=20260926-oct';
 import { createMap } from './components/map.js?v=20260927-fit';
 import { createTimeline } from './components/timeline.js?v=20260927-fit';
 import { createChapters } from './components/chapters.js';
-import { createPanel } from './components/panel.js?v=20260927-fit';
+import { createPanel } from './components/panel.js?v=20260927-titles';
 
 async function boot() {
   let data;

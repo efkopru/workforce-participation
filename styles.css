@@ -4,6 +4,7 @@
   --bg2: #11151d;
   --bg3: #161b26;
   --line: rgba(255, 255, 255, 0.07);
+  --divider: rgba(255, 255, 255, 0.14);
   --text: #e8ebf1;
   --muted: #8b93a7;
   --faint: #5b6377;
@@ -242,6 +243,21 @@ main {
 #panel .close-x { color: var(--faint); font-size: 15px; padding: 2px 7px; border-radius: 7px; }
 #panel .close-x:hover { color: var(--text); background: var(--bg3); }
 
+/* the place name spans the panel; the key numbers and the lists or charts below it
+   each get a title, and a divider keeps the two areas apart */
+#panel .panel-head { padding-bottom: 8px; margin-bottom: 10px; border-bottom: 1px solid var(--divider); }
+#panel .panel-head .panel-sub { margin-bottom: 0; }
+#panel .panel-head .rank-chip { margin: 8px 0 0; }
+.panel-title {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+  margin: 0 0 8px;
+}
+.panel-side { border-top: 1px solid var(--divider); margin-top: 14px; padding-top: 12px; }
+
 .rank-chip {
   display: inline-block;
   font-size: 11px;
@@ -294,6 +310,7 @@ main {
 /* national mode lists */
 .rk-section { margin-top: 4px; }
 .rk-title { font-size: 10.5px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: var(--faint); margin: 12px 0 6px; }
+.panel-title + .rk-title { margin-top: 0; }
 .rk-row {
   display: flex;
   align-items: center;
@@ -493,7 +510,8 @@ main {
   #legend .lg-nodata { grid-column: 3; grid-row: 1; margin: 0; }
   #legend .lg-note { grid-column: 1 / -1; grid-row: 3; margin: 2px 0 0; max-width: none; }
   #panel { flex: 1 1 0; width: auto; max-height: none; display: grid; grid-template-columns: minmax(250px, 1fr) minmax(0, 1.3fr); column-gap: 24px; align-content: start; }
-  #panel .rk-section > .rk-title:first-child { margin-top: 4px; }
+  #panel .panel-head { grid-column: 1 / -1; }
+  .panel-side { border-top: 0; margin-top: 0; padding-top: 0; border-left: 1px solid var(--divider); padding-left: 24px; }
   #sparks { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; }
   #timelineWrap { display: grid; grid-template-columns: 1fr auto; column-gap: 16px; align-items: start; }
   #chapters { grid-column: 1; grid-row: 1; }
