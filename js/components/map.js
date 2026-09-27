@@ -144,5 +144,6 @@ export function createMap(data, store, actions, tooltip) {
     const t = sel => instant || !dur(1) ? sel : sel.transition().duration(300);
     t(gGeo.style('pointer-events', geo ? 'all' : 'none')).style('opacity', geo ? 1 : 0);
     t(gGrid.style('pointer-events', geo ? 'none' : 'all')).style('opacity', geo ? 0 : 1);
+    d3.select('#mapWrap').classed('grid-view', !geo);   // CSS sizes the grid larger than the map
   }
 }

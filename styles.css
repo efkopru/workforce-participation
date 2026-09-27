@@ -136,10 +136,12 @@ main {
   overflow: hidden;
 }
 #map { display: block; width: 100%; height: auto; }
-/* Side-by-side layouts draw the map at 75% of its panel, centered, so it does not dominate the page. */
+/* Side-by-side layouts draw the geographic map at half its panel width, centered, so it does not
+   dominate the page. The tile grid stays at 75%, where its state labels remain readable. */
 @media (min-width: 1021px) {
   #mapWrap { display: flex; align-items: center; justify-content: center; }
-  #map { width: 75%; }
+  #map { width: 50%; }
+  #mapWrap.grid-view #map { width: 75%; }
 }
 
 #map .state {
