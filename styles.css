@@ -136,13 +136,6 @@ main {
   overflow: hidden;
 }
 #map { display: block; width: 100%; height: auto; }
-/* Side-by-side layouts draw the geographic map at half its panel width, centered, so it does not
-   dominate the page. The tile grid stays at 75%, where its state labels remain readable. */
-@media (min-width: 1021px) {
-  #mapWrap { display: flex; align-items: center; justify-content: center; }
-  #map { width: 50%; }
-  #mapWrap.grid-view #map { width: 75%; }
-}
 
 #map .state {
   stroke: rgba(255, 255, 255, 0.9);
@@ -190,6 +183,7 @@ main {
   pointer-events: none;
 }
 #legend .lg-title { font-size: 11px; font-weight: 600; color: #10131b; margin-bottom: 6px; }
+#legend .lg-bar { width: 230px; height: 10px; border-radius: 5px; }
 #legend .lg-labels {
   display: flex;
   justify-content: space-between;
@@ -480,6 +474,23 @@ main {
 }
 
 /* ── responsive ─────────────────────────────────────────────────── */
+/* Wide layouts: the map panel wraps the map, with the legend as a strip below it, and the side
+   panel takes the remaining width in two columns, so neither panel carries empty space. The tile
+   grid gets a wider panel so its state labels stay readable. */
+@media (min-width: 1021px) {
+  #mapWrap { flex: 0 0 28.5%; min-width: 340px; display: flex; flex-direction: column; justify-content: center; padding: 12px 14px 10px; }
+  #mapWrap.grid-view { flex-basis: 55%; }
+  #legend { position: static; display: grid; grid-template-columns: max-content minmax(90px, 230px) max-content; align-items: center; gap: 2px 14px; margin-top: 8px; padding: 8px 10px; backdrop-filter: none; }
+  #legend .lg-title { grid-column: 1; grid-row: 1; margin: 0; }
+  #legend .lg-bar { grid-column: 2; grid-row: 1; width: 100%; }
+  #legend .lg-labels { grid-column: 2; grid-row: 2; margin: 0; }
+  #legend .lg-nodata { grid-column: 3; grid-row: 1; margin: 0; }
+  #legend .lg-note { grid-column: 1 / -1; grid-row: 3; margin: 2px 0 0; max-width: none; }
+  #panel { flex: 1 1 0; width: auto; max-height: none; display: grid; grid-template-columns: minmax(250px, 1fr) minmax(0, 1.3fr); column-gap: 24px; align-content: start; }
+  #panel .rk-section > .rk-title:first-child { margin-top: 4px; }
+  #sparks { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; }
+}
+
 @media (max-width: 1020px) {
   main { flex-direction: column; }
   #panel { flex: 1 1 auto; width: auto; max-height: none; }

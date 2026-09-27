@@ -3,18 +3,18 @@
    the store notifies components. */
 
 import { DATA_URL } from './config.js';
-import { loadData } from './data.js?v=20260925-ylgnbu';
+import { loadData } from './data.js?v=20260926-oct';
 import { createStore } from './store.js';
 import { createActions } from './actions.js';
 import { initModal, isModalOpen, showLoadError } from './ui.js';
 import { initialStateFromHash, bindPermalink } from './permalink.js';
 import { createMetricBar } from './components/metricBar.js';
 import { createViewToggle } from './components/viewToggle.js';
-import { createTooltip } from './components/tooltip.js?v=20260925-ylgnbu';
-import { createMap } from './components/map.js?v=20260926-map50';
-import { createTimeline } from './components/timeline.js?v=20260925-ylgnbu';
+import { createTooltip } from './components/tooltip.js?v=20260926-oct';
+import { createMap } from './components/map.js?v=20260926-oct';
+import { createTimeline } from './components/timeline.js?v=20260926-oct';
 import { createChapters } from './components/chapters.js';
-import { createPanel } from './components/panel.js';
+import { createPanel } from './components/panel.js?v=20260926-layout';
 
 async function boot() {
   let data;

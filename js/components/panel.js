@@ -37,12 +37,16 @@ export function createPanel(data, store, actions) {
 
   function build(s) {
     sparks = [];
+    /* panel-main holds the summary, panel-side the lists or charts; wide layouts
+       show them side by side, narrow ones stack them. */
     if (!s.selected) {
       panel.html(`
-        <h2>United States</h2>
-        <div class="panel-sub">national aggregate of 50 states + DC · click any state to zoom in</div>
-        ${statGrid}
-        <div class="rk-section">
+        <div class="panel-main">
+          <h2>United States</h2>
+          <div class="panel-sub">national aggregate of 50 states + DC · click any state to zoom in</div>
+          ${statGrid}
+        </div>
+        <div class="panel-side rk-section">
           <div class="rk-title" id="rk-hi-title"></div><div id="rk-hi"></div>
           <div class="rk-title" id="rk-lo-title"></div><div id="rk-lo"></div>
         </div>`);
@@ -51,12 +55,16 @@ export function createPanel(data, store, actions) {
 
     const st = data.byState.get(s.selected);
     panel.html(`
-      <h2>${st.name}<button class="close-x" id="closeSel" title="Back to national view">✕</button></h2>
-      <div class="panel-sub">vs the national picture · click charts to scrub time</div>
-      <div class="rank-chip" id="rankChip"></div>
-      ${statGrid}
-      <div class="spark-legend"><i style="background:#67e8f9"></i>${st.abbr}<i style="background:#8b93a7"></i>US</div>
-      <div id="sparks"></div>`);
+      <div class="panel-main">
+        <h2>${st.name}<button class="close-x" id="closeSel" title="Back to national view">✕</button></h2>
+        <div class="panel-sub">vs the national picture · click charts to scrub time</div>
+        <div class="rank-chip" id="rankChip"></div>
+        ${statGrid}
+      </div>
+      <div class="panel-side">
+        <div class="spark-legend"><i style="background:#67e8f9"></i>${st.abbr}<i style="background:#8b93a7"></i>US</div>
+        <div id="sparks"></div>
+      </div>`);
     d3.select('#closeSel').on('click', () => actions.select(null));
     buildSparks(st);
   }

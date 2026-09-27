@@ -40,7 +40,7 @@ version in `index.html` so cached JavaScript does not outlive the new page.
   selected metric, so spikes show you where to look.
 - **Story chapters** — buttons computed *from the data*: peak national
   unemployment, peak quit rate, the tightest unemployed-per-opening ratio,
-  the Oct 2025 data gap, and the latest available month.
+  and the latest available month.
 - **Two map projections** — geographic (Albers) and an equal-size tile grid.
 - **Click any state** for sparklines vs. the national average, a live rank
   chip, and its line overlaid on the timeline.
@@ -103,9 +103,12 @@ Missing months are hatched rather than colored.
   force, participation, employment, unemployment) and state Job Openings and
   Labor Turnover Survey estimates (openings, hires, quits). Rebuilt on
   September 25, 2026; August 2026 LAUS figures are preliminary.
-- **October 2025:** BLS has not published state LAUS estimates, so
-  participation and unemployment are missing for all 51 jurisdictions. Job
-  openings, hires and quits exist for that month. Gaps are never interpolated.
+- **October 2025:** BLS did not publish state LAUS estimates. The CSV keeps
+  that month empty; the app fills the labor-force values by straight-line
+  interpolation between September and November 2025 (`fillInteriorGaps` in
+  `js/data.js`) and labels them as interpolated on the map, timeline and
+  tooltip. Job openings, hires and quits for October are published figures.
+  Other gaps, such as 2026 JOLTS, are not interpolated.
 - **Job openings, hires and quits end in December 2025.** BLS now publishes
   state JOLTS once a year, adding the prior year's monthly figures, so 2026
   months stay empty until the next annual release.

@@ -14,7 +14,7 @@ export function createTooltip(data, store) {
 
     el.attr('hidden', null).html(`
       <div class="tt-state">${name}</div>
-      <div class="tt-date">${fmtMonth(data.periods[idx])}${fin(v.lfpr[idx]) ? '' : ' · labor-force data not published'}</div>
+      <div class="tt-date">${fmtMonth(data.periods[idx])}${!fin(v.lfpr[idx]) ? ' · labor-force data not published' : data.estimated.has(idx) ? ' · labor-force values interpolated' : ''}</div>
       <div class="tt-metric"><span>${m.label}</span><span class="v">${m.fmt(v[m.col][idx])}</span></div>
       ${row('Participation', FMT.pct1(v.lfpr[idx]))}
       ${row('Unemployment', FMT.pct1(v.ur[idx]))}
