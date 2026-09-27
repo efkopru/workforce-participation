@@ -37,7 +37,7 @@ export function createTimeline(data, store, actions) {
 
   /* ── chart ─────────────────────────────────────────────────────── */
   function build(s) {
-    const W = Math.max(420, document.querySelector('.tl-main').clientWidth);
+    const W = Math.max(200, document.querySelector('.tl-main').clientWidth);   // true width, so phone labels are not squeezed
     svg.attr('viewBox', `0 0 ${W} ${H}`).attr('preserveAspectRatio', 'none');
     svg.selectAll('*').remove();
 
@@ -57,46 +57,46 @@ export function createTimeline(data, store, actions) {
     const years = d3.timeYear.range(d3.timeYear.ceil(data.periods[0]), data.periods[data.N - 1]);
     svg.selectAll('line.yr').data(years).join('line').attr('class', 'yr')
       .attr('x1', d => x(d)).attr('x2', d => x(d))
-      .attr('y1', M.t).attr('y2', H - M.b)
-      .attr('stroke', 'rgba(255,255,255,0.06)');
+      .attr('y1', M.t).attr('y2', H - M.b);
     svg.selectAll('text.yr').data([data.periods[0], ...years]).join('text').attr('class', 'yr')
       .attr('x', d => x(d) + 4).attr('y', H - 7)
-      .attr('fill', '#5b6377').attr('font-size', 10)
+      .attr('font-size', 10)
       .text(d3.timeFormat('’%y'));
 
     /* reference line: 0 for deltas, 1 for the worker ratio */
     if (m.kind === 'div' && m.center >= y.domain()[0] && m.center <= y.domain()[1])
-      svg.append('line')
+      svg.append('line').attr('class', 'ref-line')
         .attr('x1', M.l).attr('x2', W - M.r)
         .attr('y1', y(m.center)).attr('y2', y(m.center))
-        .attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-dasharray', '3 4');
+        .attr('stroke-dasharray', '3 4');
 
     const line = d3.line().defined(p => fin(p.v)).x(p => x(p.d)).y(p => y(p.v));
     const area = d3.area().defined(p => fin(p.v)).x(p => x(p.d)).y0(H - M.b).y1(p => y(p.v));
 
-    svg.append('path').datum(nat).attr('d', area).attr('fill', 'rgba(251,191,36,0.09)');
-    svg.append('path').datum(nat).attr('d', line)
-      .attr('fill', 'none').attr('stroke', '#fbbf24').attr('stroke-width', 1.8);
+    /* colours come from the theme stylesheet via these classes */
+    svg.append('path').datum(nat).attr('class', 'us-area').attr('d', area);
+    svg.append('path').datum(nat).attr('class', 'us-line').attr('d', line)
+      .attr('fill', 'none').attr('stroke-width', 1.8);
 
-    if (sel) svg.append('path').datum(sel).attr('d', line)
-      .attr('fill', 'none').attr('stroke', '#67e8f9').attr('stroke-width', 1.6);
+    if (sel) svg.append('path').datum(sel).attr('class', 'state-line').attr('d', line)
+      .attr('fill', 'none').attr('stroke-width', 1.6);
     /* the key sits beside the caption, where it cannot cover the 2020 lines */
     legend.attr('hidden', sel ? null : '')
-      .html(sel ? `<i style="background:#fbbf24"></i>United States<i style="background:#67e8f9"></i>${s.selected}` : '');
+      .html(sel ? `<i class="key-us"></i>United States<i class="key-state"></i>${s.selected}` : '');
 
     /* chapter markers on the axis */
     svg.selectAll('circle.ch').data(data.chapters).join('circle').attr('class', 'ch')
       .attr('cx', c => x(data.periods[c.idx])).attr('cy', H - M.b + 6).attr('r', 3)
-      .attr('fill', '#fbbf24').attr('opacity', 0.7).style('cursor', 'pointer')
+      .attr('opacity', 0.7).style('cursor', 'pointer')
       .on('click', (e, c) => actions.gotoChapter(c))
       .append('title').text(c => c.title);
 
     /* cursor */
     cursor = svg.append('g').style('pointer-events', 'none');
-    cursor.append('line').attr('y1', M.t).attr('y2', H - M.b)
-      .attr('stroke', '#fff').attr('stroke-width', 1.2).attr('opacity', 0.85);
-    natDot = cursor.append('circle').attr('r', 4).attr('fill', '#fbbf24')
-      .attr('stroke', '#0b0e14').attr('stroke-width', 1.5);
+    cursor.append('line').attr('class', 'cursor-line').attr('y1', M.t).attr('y2', H - M.b)
+      .attr('stroke-width', 1.2).attr('opacity', 0.85);
+    natDot = cursor.append('circle').attr('class', 'cursor-dot').attr('r', 4)
+      .attr('stroke-width', 1.5);
 
     /* scrub anywhere on the chart */
     svg.on('pointerdown', ev => { svg.node().setPointerCapture(ev.pointerId); scrub(ev); })

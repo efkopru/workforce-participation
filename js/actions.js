@@ -2,7 +2,7 @@
    directly, so every behavior (play, scrub, chapter jumps, selection)
    has exactly one implementation. */
 
-import { toast } from './ui.js';
+import { toast } from './ui.js?v=20260927-theme';
 
 const TICK_MS = 340;          // playback speed: one month per tick
 

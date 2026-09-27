@@ -5,18 +5,19 @@
 import { DATA_URL } from './config.js';
 import { loadData } from './data.js?v=20260926-oct';
 import { createStore } from './store.js';
-import { createActions } from './actions.js';
-import { initModal, isModalOpen, showLoadError } from './ui.js';
+import { createActions } from './actions.js?v=20260927-theme';
+import { initModal, initTheme, isModalOpen, showLoadError } from './ui.js?v=20260927-theme';
 import { initialStateFromHash, bindPermalink } from './permalink.js';
-import { createMetricBar } from './components/metricBar.js';
-import { createViewToggle } from './components/viewToggle.js';
+import { createMetricBar } from './components/metricBar.js?v=20260927-theme';
+import { createViewToggle } from './components/viewToggle.js?v=20260927-theme';
 import { createTooltip } from './components/tooltip.js?v=20260926-oct';
 import { createMap } from './components/map.js?v=20260927-fit';
-import { createTimeline } from './components/timeline.js?v=20260927-fit';
-import { createChapters } from './components/chapters.js';
-import { createPanel } from './components/panel.js?v=20260927-titles';
+import { createTimeline } from './components/timeline.js?v=20260927-theme';
+import { createChapters } from './components/chapters.js?v=20260927-theme';
+import { createPanel } from './components/panel.js?v=20260927-theme';
 
 async function boot() {
+  initTheme();                    // before the data loads, so the switch always works
   let data;
   try {
     data = await loadData(DATA_URL);

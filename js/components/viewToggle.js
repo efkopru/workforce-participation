@@ -5,7 +5,8 @@ export function createViewToggle(store, actions) {
     .on('click', function () { actions.setView(this.dataset.view); });
 
   const render = s => {
-    buttons.classed('active', function () { return this.dataset.view === s.view; });
+    buttons.classed('active', function () { return this.dataset.view === s.view; })
+      .attr('aria-pressed', function () { return this.dataset.view === s.view; });
     if (s.geoFailed)
       buttons.filter('[data-view=geo]')
         .attr('disabled', true).style('opacity', 0.35)

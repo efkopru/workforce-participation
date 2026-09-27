@@ -72,7 +72,7 @@ export function createPanel(data, store, actions) {
       ${keyNumbers}
       <section class="panel-side">
         <h3 class="panel-title">Trends · ${fmtMonYr(first)} – ${fmtMonYr(last)}</h3>
-        <div class="spark-legend"><i style="background:#67e8f9"></i>${st.abbr}<i style="background:#8b93a7"></i>US</div>
+        <div class="spark-legend"><i class="key-state"></i>${st.abbr}<i class="key-us-spark"></i>US</div>
         <div id="sparks"></div>
       </section>`);
     d3.select('#closeSel').on('click', () => actions.select(null));
@@ -105,24 +105,23 @@ export function createPanel(data, store, actions) {
       const mkLine = arr => d3.line()
         .defined(i => fin(arr[i])).x(i => x(i)).y(i => y(arr[i]))(d3.range(data.N));
 
-      if (spec.ref != null) svg.append('line')
+      /* colours come from the theme stylesheet via these classes */
+      if (spec.ref != null) svg.append('line').attr('class', 'ref-line')
         .attr('x1', SM.l).attr('x2', SW - SM.r).attr('y1', y(spec.ref)).attr('y2', y(spec.ref))
-        .attr('stroke', 'rgba(255,255,255,0.18)').attr('stroke-dasharray', '2 4');
-      svg.append('path').attr('d', mkLine(natV)).attr('fill', 'none')
-        .attr('stroke', '#8b93a7').attr('stroke-width', 1)
-        .attr('stroke-dasharray', '2 3').attr('opacity', 0.8);
-      if (extraV) svg.append('path').attr('d', mkLine(extraV)).attr('fill', 'none')
-        .attr('stroke', '#4ade80').attr('stroke-width', 1.1).attr('opacity', 0.75);
-      svg.append('path').attr('d', mkLine(stV)).attr('fill', 'none')
-        .attr('stroke', '#67e8f9').attr('stroke-width', 1.6);
-      if (fin(stV[data.baseIdx])) svg.append('circle')          // Feb 2020 marker
-        .attr('cx', x(data.baseIdx)).attr('cy', y(stV[data.baseIdx]))
-        .attr('r', 2).attr('fill', '#fbbf24');
+        .attr('stroke-dasharray', '2 4');
+      svg.append('path').attr('class', 'us-line').attr('d', mkLine(natV)).attr('fill', 'none')
+        .attr('stroke-width', 1).attr('stroke-dasharray', '2 3').attr('opacity', 0.8);
+      if (extraV) svg.append('path').attr('class', 'extra-line').attr('d', mkLine(extraV)).attr('fill', 'none')
+        .attr('stroke-width', 1.1).attr('opacity', 0.75);
+      svg.append('path').attr('class', 'state-line').attr('d', mkLine(stV)).attr('fill', 'none')
+        .attr('stroke-width', 1.6);
+      if (fin(stV[data.baseIdx])) svg.append('circle').attr('class', 'base-dot')   // Feb 2020 marker
+        .attr('cx', x(data.baseIdx)).attr('cy', y(stV[data.baseIdx])).attr('r', 2);
 
-      const cur = svg.append('line').attr('y1', SM.t).attr('y2', SH - SM.b)
-        .attr('stroke', '#fff').attr('opacity', 0.5);
-      const dot = svg.append('circle').attr('r', 2.6).attr('fill', '#67e8f9')
-        .attr('stroke', '#0b0e14').attr('stroke-width', 1);
+      const cur = svg.append('line').attr('class', 'cursor-line').attr('y1', SM.t).attr('y2', SH - SM.b)
+        .attr('opacity', 0.5);
+      const dot = svg.append('circle').attr('class', 'cursor-dot').attr('r', 2.6)
+        .attr('stroke-width', 1);
 
       const seekHere = ev => {
         actions.pause();
