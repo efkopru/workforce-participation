@@ -478,9 +478,9 @@ main {
    panel takes the remaining width in two columns, so neither panel carries empty space. The tile
    grid gets a wider panel so its state labels stay readable. */
 @media (min-width: 1021px) {
-  #mapWrap { flex: 0 0 28.5%; min-width: 340px; display: flex; flex-direction: column; justify-content: center; padding: 12px 14px 10px; }
+  #mapWrap { flex: 0 0 38%; display: flex; flex-direction: column; justify-content: center; padding: 12px 14px 10px; }
   #mapWrap.grid-view { flex-basis: 55%; }
-  #legend { position: static; display: grid; grid-template-columns: max-content minmax(90px, 230px) max-content; align-items: center; gap: 2px 14px; margin-top: 8px; padding: 8px 10px; backdrop-filter: none; }
+  #legend { position: static; display: grid; grid-template-columns: max-content minmax(120px, 230px) max-content; align-items: center; gap: 2px 14px; margin-top: 8px; padding: 8px 10px; backdrop-filter: none; }
   #legend .lg-title { grid-column: 1; grid-row: 1; margin: 0; }
   #legend .lg-bar { grid-column: 2; grid-row: 1; width: 100%; }
   #legend .lg-labels { grid-column: 2; grid-row: 2; margin: 0; }
