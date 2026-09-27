@@ -1,25 +1,93 @@
 /* ── The Shape of American Work ─────────────────────────────────── */
+/* Dark theme values; the light theme overrides them below. An inline script in index.html
+   sets data-theme on <html> from the saved choice or the system setting before first paint. */
 :root {
+  color-scheme: dark;
   --bg: #0b0e14;
   --bg2: #11151d;
   --bg3: #161b26;
   --line: rgba(255, 255, 255, 0.07);
+  --line-strong: rgba(255, 255, 255, 0.22);
   --divider: rgba(255, 255, 255, 0.14);
   --text: #e8ebf1;
   --muted: #8b93a7;
   --faint: #5b6377;
-  --amber: #fbbf24;
-  --cyan: #67e8f9;
+  --accent: #fbbf24;                        /* fills: active pill, play button */
+  --accent-ink: #0b0e14;                    /* text on an accent fill */
+  --accent-text: #fbbf24;                   /* accent-coloured text */
+  --accent-line: #fbbf24;                   /* U.S. trend line, chapter marks */
+  --accent-soft: rgba(251, 191, 36, 0.12);
+  --accent-border: rgba(251, 191, 36, 0.45);
+  --us-area: rgba(251, 191, 36, 0.09);
+  --state-line: #67e8f9;                    /* the selected state's lines */
+  --state-text: #67e8f9;
+  --state-soft: rgba(103, 232, 249, 0.1);
+  --state-border: rgba(103, 232, 249, 0.25);
+  --spark-us: #8b93a7;
+  --spark-extra: #4ade80;
   --red: #f87171;
   --green: #4ade80;
+  --grid-line: rgba(255, 255, 255, 0.06);
+  --ref-line: rgba(255, 255, 255, 0.18);
+  --cursor: #ffffff;
+  --track: rgba(255, 255, 255, 0.05);
+  --bar-outline: rgba(255, 255, 255, 0.28);  /* keeps navy bars visible on the dark track */
+  --map-surface: #f3f6f9;
+  --card-shadow: none;
+  --tooltip-bg: rgba(13, 17, 25, 0.94);
+  --overlay-border: rgba(255, 255, 255, 0.12);
+  --overlay-shadow: 0 16px 50px rgba(0, 0, 0, 0.55);
+  --backdrop: rgba(5, 7, 11, 0.7);
+  --scroll-thumb: #2a3140;
   --radius: 12px;
   --serif: "Fraunces", Georgia, "Times New Roman", serif;
   --sans: "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
 }
 
+/* Light theme: white panels on a pale page, with the amber and cyan accents darkened
+   enough to read on white. */
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: #eef2f6;
+  --bg2: #ffffff;
+  --bg3: #f4f6f9;
+  --line: rgba(16, 19, 27, 0.1);
+  --line-strong: rgba(16, 19, 27, 0.28);
+  --divider: rgba(16, 19, 27, 0.16);
+  --text: #10131b;
+  --muted: #4b5563;
+  --faint: #5f6b7a;
+  --accent-text: #b45309;
+  --accent-line: #d97706;
+  --accent-soft: rgba(245, 158, 11, 0.14);
+  --accent-border: rgba(217, 119, 6, 0.45);
+  --us-area: rgba(217, 119, 6, 0.1);
+  --state-line: #0891b2;
+  --state-text: #0e7490;
+  --state-soft: rgba(8, 145, 178, 0.08);
+  --state-border: rgba(8, 145, 178, 0.3);
+  --spark-us: #6b7280;
+  --spark-extra: #16a34a;
+  --red: #dc2626;
+  --green: #15803d;
+  --grid-line: rgba(16, 19, 27, 0.08);
+  --ref-line: rgba(16, 19, 27, 0.28);
+  --cursor: #10131b;
+  --track: rgba(16, 19, 27, 0.06);
+  --bar-outline: rgba(16, 19, 27, 0.2);     /* keeps pale bars visible on the light track */
+  --map-surface: #ffffff;
+  --card-shadow: 0 1px 3px rgba(16, 19, 27, 0.06);
+  --tooltip-bg: rgba(255, 255, 255, 0.97);
+  --overlay-border: rgba(16, 19, 27, 0.12);
+  --overlay-shadow: 0 16px 44px rgba(16, 19, 27, 0.18);
+  --backdrop: rgba(16, 19, 27, 0.35);
+  --scroll-thumb: #c3cad4;
+}
+
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
 
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 html, body {
   margin: 0;
   background: var(--bg);
@@ -38,6 +106,7 @@ button {
   background: none;
   border: none;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── header ─────────────────────────────────────────────────────── */
@@ -53,7 +122,7 @@ button {
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--amber);
+  color: var(--accent-text);
 }
 .top h1 {
   font-family: var(--serif);
@@ -65,7 +134,7 @@ button {
 }
 .sub { margin: 0; color: var(--muted); max-width: 900px; }
 
-.top-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.top-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; flex-shrink: 0; }
 
 .ghost-btn {
   font-size: 12.5px;
@@ -75,7 +144,13 @@ button {
   padding: 7px 12px;
   transition: color 0.15s, border-color 0.15s;
 }
-.ghost-btn:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.2); }
+.ghost-btn:hover { color: var(--text); border-color: var(--line-strong); }
+
+/* theme switch: shows the sun in the dark theme and the moon in the light one */
+.icon-btn { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; padding: 0; }
+.icon-btn svg { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+:root[data-theme="light"] .icon-sun,
+:root:not([data-theme="light"]) .icon-moon { display: none; }
 
 .view-toggle {
   display: flex;
@@ -91,7 +166,7 @@ button {
   color: var(--muted);
   transition: background 0.15s, color 0.15s;
 }
-.view-toggle button.active { background: rgba(251, 191, 36, 0.14); color: var(--amber); }
+.view-toggle button.active { background: var(--accent-soft); color: var(--accent-text); }
 
 /* ── metric pills ───────────────────────────────────────────────── */
 #metricBar {
@@ -111,11 +186,11 @@ button {
   transition: all 0.15s;
   white-space: nowrap;
 }
-#metricBar button:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.22); }
+#metricBar button:hover { color: var(--text); border-color: var(--line-strong); }
 #metricBar button.active {
-  color: #0b0e14;
-  background: var(--amber);
-  border-color: var(--amber);
+  color: var(--accent-ink);
+  background: var(--accent);
+  border-color: var(--accent);
   font-weight: 600;
 }
 
@@ -126,15 +201,20 @@ main {
   align-items: stretch;
 }
 
-/* The map sits on a light surface so its light-to-dark ramp reads naturally
-   (the palest values would vanish on the dark page). */
+/* The map sits on a light surface in both themes so its light-to-dark ramp reads naturally
+   (the palest values would vanish on a dark page). The legend is a strip below the map. */
 #mapWrap {
   position: relative;
   flex: 1 1 auto;
   min-width: 0;
-  background: #f3f6f9;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 14px 10px;
+  background: var(--map-surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
   overflow: hidden;
 }
 #map { display: block; width: 100%; height: auto; }
@@ -152,7 +232,7 @@ main {
 
 #map .cell { cursor: pointer; }
 #map .cell rect {
-  stroke: #f3f6f9;
+  stroke: var(--map-surface);
   stroke-width: 1.5;
   rx: 7px;
 }
@@ -173,29 +253,31 @@ main {
   letter-spacing: 0.04em;
 }
 
-/* legend */
+/* legend: title, colour bar and no-data key on one row, the bar's labels below */
 #legend {
-  position: absolute;
-  left: 16px;
-  bottom: 13px;
+  display: grid;
+  grid-template-columns: max-content minmax(120px, 230px) max-content;
+  align-items: center;
+  gap: 2px 14px;
+  margin-top: 8px;
   background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(6px);
   border: 1px solid rgba(16, 19, 27, 0.12);
   border-radius: 10px;
-  padding: 9px 12px 8px;
+  padding: 8px 10px;
   pointer-events: none;
 }
-#legend .lg-title { font-size: 11px; font-weight: 600; color: #10131b; margin-bottom: 6px; }
-#legend .lg-bar { width: 230px; height: 10px; border-radius: 5px; }
+#legend .lg-title { grid-column: 1; grid-row: 1; font-size: 11px; font-weight: 600; color: #10131b; }
+#legend .lg-bar { grid-column: 2; grid-row: 1; width: 100%; height: 10px; border-radius: 5px; }
 #legend .lg-labels {
+  grid-column: 2;
+  grid-row: 2;
   display: flex;
   justify-content: space-between;
   font-size: 10px;
   color: #43505d;
-  margin-top: 3px;
   font-variant-numeric: tabular-nums;
 }
-#legend .lg-nodata { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #43505d; margin-top: 5px; }
+#legend .lg-nodata { grid-column: 3; grid-row: 1; display: flex; align-items: center; gap: 6px; font-size: 10px; color: #43505d; }
 #legend .lg-nodata i {
   width: 18px;
   height: 10px;
@@ -203,7 +285,7 @@ main {
   border: 1px solid #9aa6b2;
   background: repeating-linear-gradient(45deg, #9aa6b2 0 1.5px, #e7ecf1 1.5px 4.2px);
 }
-#legend .lg-note { font-size: 10px; color: #5b6377; margin-top: 4px; max-width: 230px; }
+#legend .lg-note { grid-column: 1 / -1; grid-row: 3; font-size: 10px; color: #5b6377; margin-top: 2px; }
 
 #mapNote {
   position: absolute;
@@ -220,14 +302,13 @@ main {
 
 /* ── side panel ─────────────────────────────────────────────────── */
 #panel {
-  flex: 0 0 350px;
-  width: 350px;
+  flex: 1 1 auto;
+  min-width: 0;
   background: var(--bg2);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
   padding: 16px 16px 12px;
-  overflow-y: auto;
-  max-height: 640px;
 }
 #panel h2 {
   font-family: var(--serif);
@@ -262,9 +343,9 @@ main {
   display: inline-block;
   font-size: 11px;
   font-weight: 600;
-  color: var(--cyan);
-  background: rgba(103, 232, 249, 0.1);
-  border: 1px solid rgba(103, 232, 249, 0.25);
+  color: var(--state-text);
+  background: var(--state-soft);
+  border: 1px solid var(--state-border);
   border-radius: 999px;
   padding: 3px 10px;
   margin-bottom: 12px;
@@ -301,11 +382,20 @@ main {
   margin-bottom: 1px;
 }
 .spark-head .sv { font-size: 12px; color: var(--text); font-variant-numeric: tabular-nums; text-transform: none; letter-spacing: 0; }
-.spark-block svg { display: block; width: 100%; height: 44px; cursor: crosshair; }
+/* pan-y: a sideways drag scrubs the months on touch screens, a vertical one still scrolls */
+.spark-block svg { display: block; width: 100%; height: 44px; cursor: crosshair; touch-action: pan-y; }
+.spark-block .us-line { stroke: var(--spark-us); }
+.spark-block .extra-line { stroke: var(--spark-extra); }
+.spark-block .cursor-dot { fill: var(--state-line); }
 
 .spark-legend { font-size: 10px; color: var(--faint); margin: 6px 0 2px; }
-.spark-legend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin: 0 4px 0 10px; }
-.spark-legend i:first-child { margin-left: 0; }
+.spark-legend i,
+#tlLegend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin: 0 4px 0 10px; }
+.spark-legend i:first-child,
+#tlLegend i:first-child { margin-left: 0; }
+.key-us { background: var(--accent-line); }
+.key-us-spark { background: var(--spark-us); }
+.key-state { background: var(--state-line); }
 
 /* national mode lists */
 .rk-section { margin-top: 4px; }
@@ -321,8 +411,8 @@ main {
 }
 .rk-row:hover { background: var(--bg3); }
 .rk-row .rk-name { flex: 0 0 118px; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rk-row .rk-bar-wrap { flex: 1; height: 8px; background: rgba(255, 255, 255, 0.05); border-radius: 4px; overflow: hidden; }
-.rk-row .rk-bar { display: block; height: 100%; border-radius: 4px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.28); }  /* outline keeps navy bars visible */
+.rk-row .rk-bar-wrap { flex: 1; height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; }
+.rk-row .rk-bar { display: block; height: 100%; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--bar-outline); }
 .rk-row .rk-val { flex: 0 0 56px; text-align: right; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .rk-empty { color: var(--faint); font-size: 12px; padding: 6px 2px; }
 
@@ -332,11 +422,13 @@ main {
   background: var(--bg2);
   border: 1px solid var(--line);
   border-radius: var(--radius);
+  box-shadow: var(--card-shadow);
   padding: 10px 16px 8px;
 }
 
 #chapters { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 8px; }
 #chapters button {
+  flex: none;
   font-size: 11.5px;
   font-weight: 500;
   color: var(--muted);
@@ -344,6 +436,7 @@ main {
   border-radius: 999px;
   padding: 5px 12px;
   transition: all 0.15s;
+  white-space: nowrap;
 }
 #chapters button::before {
   content: "";
@@ -351,16 +444,16 @@ main {
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: var(--amber);
+  background: var(--accent-line);
   margin-right: 7px;
   vertical-align: 1px;
   opacity: 0.55;
 }
-#chapters button:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.22); }
+#chapters button:hover { color: var(--text); border-color: var(--line-strong); }
 #chapters button.active {
-  color: var(--amber);
-  border-color: rgba(251, 191, 36, 0.45);
-  background: rgba(251, 191, 36, 0.08);
+  color: var(--accent-text);
+  border-color: var(--accent-border);
+  background: var(--accent-soft);
 }
 #chapters button.active::before { opacity: 1; }
 
@@ -371,8 +464,8 @@ main {
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: var(--amber);
-  color: #0b0e14;
+  background: var(--accent);
+  color: var(--accent-ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -393,28 +486,43 @@ main {
   font-variant-numeric: tabular-nums;
 }
 #caption { font-size: 12.5px; color: var(--muted); transition: opacity 0.25s; }
-#caption.chapter { color: var(--amber); }
+#caption.chapter { color: var(--accent-text); }
 /* key for the two lines once a state is selected */
 #tlLegend { margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
-#tlLegend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin: 0 5px 0 12px; }
-#tlLegend i:first-child { margin-left: 0; }
 
-#timeline { display: block; width: 100%; height: 68px; cursor: crosshair; }
+#timeline { display: block; width: 100%; height: 68px; cursor: crosshair; touch-action: pan-y; }
+#timeline line.yr { stroke: var(--grid-line); }
+#timeline text.yr { fill: var(--faint); }
+#timeline .us-area { fill: var(--us-area); }
+#timeline .us-line { stroke: var(--accent-line); }
+#timeline circle.ch { fill: var(--accent-line); }
+#timeline .cursor-dot { fill: var(--accent-line); }
+.ref-line { stroke: var(--ref-line); }
+.state-line { stroke: var(--state-line); }
+.base-dot { fill: var(--accent-line); }
+.cursor-line { stroke: var(--cursor); }
+.cursor-dot { stroke: var(--bg2); }
 
 .hint { text-align: center; color: var(--faint); font-size: 11px; padding-top: 6px; }
+.hint-touch { display: none; }
+/* touch screens get touch instructions instead of keyboard ones */
+@media (hover: none) {
+  .hint-keys { display: none; }
+  .hint-touch { display: inline; }
+}
 
 /* ── tooltip ────────────────────────────────────────────────────── */
 #tooltip {
   position: fixed;
   z-index: 50;
   pointer-events: none;
-  background: rgba(13, 17, 25, 0.94);
+  background: var(--tooltip-bg);
   backdrop-filter: blur(8px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--overlay-border);
   border-radius: 11px;
   padding: 11px 13px;
   min-width: 215px;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+  box-shadow: var(--overlay-shadow);
 }
 #tooltip .tt-state { font-family: var(--serif); font-size: 16px; font-weight: 600; }
 #tooltip .tt-date { font-size: 10.5px; color: var(--faint); margin-bottom: 7px; }
@@ -438,7 +546,7 @@ main {
   position: fixed;
   inset: 0;
   z-index: 100;
-  background: rgba(5, 7, 11, 0.7);
+  background: var(--backdrop);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -450,10 +558,10 @@ main {
   max-height: 84vh;
   overflow-y: auto;
   background: var(--bg2);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--overlay-border);
   border-radius: 16px;
   padding: 26px 30px;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.6);
+  box-shadow: var(--overlay-shadow);
 }
 #modal h2 { font-family: var(--serif); margin: 0 0 10px; }
 #modal p, #modal li { color: var(--muted); font-size: 13px; }
@@ -468,13 +576,14 @@ main {
   left: 50%;
   transform: translateX(-50%);
   z-index: 90;
+  max-width: calc(100vw - 32px);
   background: var(--bg3);
-  border: 1px solid rgba(251, 191, 36, 0.35);
+  border: 1px solid var(--accent-border);
   color: var(--text);
   font-size: 12.5px;
   padding: 10px 18px;
   border-radius: 10px;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--overlay-shadow);
 }
 
 /* ── load error screen ──────────────────────────────────────────── */
@@ -497,35 +606,75 @@ main {
 }
 
 /* ── responsive ─────────────────────────────────────────────────── */
-/* Wide layouts: the map panel wraps the map (or the tile grid, drawn at the same size), with the
-   legend as a strip below it, and the side panel takes the remaining width in two columns, so
-   neither panel carries empty space. The keyboard hint shares the chapter row, keeping the
-   timeline short enough for the whole atlas to fit in the window. */
-@media (min-width: 1021px) {
-  #mapWrap { flex: 0 0 38%; display: flex; flex-direction: column; justify-content: center; padding: 12px 14px 10px; }
-  #legend { position: static; display: grid; grid-template-columns: max-content minmax(120px, 230px) max-content; align-items: center; gap: 2px 14px; margin-top: 8px; padding: 8px 10px; backdrop-filter: none; }
-  #legend .lg-title { grid-column: 1; grid-row: 1; margin: 0; }
-  #legend .lg-bar { grid-column: 2; grid-row: 1; width: 100%; }
-  #legend .lg-labels { grid-column: 2; grid-row: 2; margin: 0; }
-  #legend .lg-nodata { grid-column: 3; grid-row: 1; margin: 0; }
-  #legend .lg-note { grid-column: 1 / -1; grid-row: 3; margin: 2px 0 0; max-width: none; }
-  #panel { flex: 1 1 0; width: auto; max-height: none; display: grid; grid-template-columns: minmax(250px, 1fr) minmax(0, 1.3fr); column-gap: 24px; align-content: start; }
+/* Tablets and wider: the side panel shows its key numbers and its lists or charts side by side. */
+@media (min-width: 700px) {
+  #panel { display: grid; grid-template-columns: minmax(250px, 1fr) minmax(0, 1.3fr); column-gap: 24px; align-content: start; }
   #panel .panel-head { grid-column: 1 / -1; }
   .panel-side { border-top: 0; margin-top: 0; padding-top: 0; border-left: 1px solid var(--divider); padding-left: 24px; }
   #sparks { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; }
+}
+
+/* Wide layouts: the map panel wraps the map (or the tile grid, drawn at the same size) and the
+   side panel takes the remaining width, so neither panel carries empty space. The keyboard hint
+   shares the chapter row, keeping the timeline short enough for the whole atlas to fit in the
+   window. */
+@media (min-width: 1021px) {
+  #mapWrap { flex: 0 0 38%; }
+  #panel { flex: 1 1 0; }
   #timelineWrap { display: grid; grid-template-columns: 1fr auto; column-gap: 16px; align-items: start; }
   #chapters { grid-column: 1; grid-row: 1; }
   #timelineWrap .hint { grid-column: 2; grid-row: 1; padding-top: 5px; }
   .tl-row { grid-column: 1 / -1; grid-row: 2; }
 }
 
+/* Tablets and phones: map, panel and timeline stack, and the map note moves off the map. */
 @media (max-width: 1020px) {
   main { flex-direction: column; }
-  #panel { flex: 1 1 auto; width: auto; max-height: none; }
   .top { flex-direction: column; align-items: flex-start; }
+  #mapNote { position: static; max-width: none; margin-top: 8px; }
+}
+
+/* Phones: the metric and chapter buttons scroll sideways in one row instead of stacking,
+   the legend wraps onto two rows, and grid tiles show only the state code. */
+@media (max-width: 600px) {
+  body { padding: 0 14px 16px; }
+  .top { padding: 12px 0 10px; gap: 10px; }
+  .top h1 { font-size: 25px; }
+  .sub { font-size: 13px; }
+  #metricBar,
+  #chapters { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  #metricBar::-webkit-scrollbar,
+  #chapters::-webkit-scrollbar { display: none; }
+  #metricBar { margin: 0 -14px; padding: 2px 14px 12px; }
+  #chapters { margin: 0 -12px 8px; padding: 0 12px; }
+  #mapWrap { padding: 8px 8px 8px; }
+  #legend { grid-template-columns: minmax(0, 1fr) max-content; }
+  #legend .lg-title { grid-column: 1; grid-row: 1; }
+  #legend .lg-nodata { grid-column: 2; grid-row: 1; }
+  #legend .lg-bar { grid-column: 1 / -1; grid-row: 2; }
+  #legend .lg-labels { grid-column: 1 / -1; grid-row: 3; }
+  #legend .lg-note { grid-column: 1 / -1; grid-row: 4; }
+  #map .cell .val { display: none; }
+  #map .cell .abbr { font-size: 26px; transform: translateY(12px); }
+  #panel { padding: 14px 14px 10px; }
+  #panel h2 { font-size: 20px; }
+  #timelineWrap { padding: 10px 12px 8px; }
+  .tl-row { gap: 10px; }
+  #periodLabel { min-width: 0; font-size: 18px; }
+  #modal { width: 94vw; padding: 22px 18px; }
+}
+
+/* Touch screens: larger tap targets. */
+@media (pointer: coarse) {
+  .ghost-btn, .view-toggle button { min-height: 40px; }
+  .icon-btn { width: 40px; height: 40px; }
+  #metricBar button { padding: 9px 14px; }
+  #chapters button { padding: 8px 12px; }
+  #panel .close-x { padding: 8px 12px; }
+  .rk-row { padding: 7px 4px; }
 }
 
 /* scrollbars */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-thumb { background: #2a3140; border-radius: 6px; border: 2px solid var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--scroll-thumb); border-radius: 6px; border: 2px solid var(--bg2); }
 ::-webkit-scrollbar-track { background: transparent; }
