@@ -7,19 +7,18 @@
 <meta name="color-scheme" content="dark light">
 <title>The Shape of American Work · 2020–2026</title>
 <script>
-/* Apply the saved theme, or the system's, before the page paints (js/ui.js wires the switch). */
+/* Apply the visitor's saved theme before the page paints; light is the default
+   (js/ui.js wires the switch). */
 (function () {
   var theme = null;
   try { theme = localStorage.getItem('atlas-theme'); } catch (e) {}
-  if (theme !== 'light' && theme !== 'dark')
-    theme = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', theme);
+  document.documentElement.setAttribute('data-theme', theme === 'dark' ? 'dark' : 'light');
 })();
 </script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css?v=20260927-years">
+<link rel="stylesheet" href="styles.css?v=20260927-light">
 </head>
 <body>
 
@@ -123,6 +122,6 @@ if (location.protocol === 'file:') {
 </script>
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
-<script type="module" src="js/main.js?v=20260927-theme"></script>
+<script type="module" src="js/main.js?v=20260927-light"></script>
 </body>
 </html>
