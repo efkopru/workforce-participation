@@ -492,7 +492,7 @@ main {
 
 #timeline { display: block; width: 100%; height: 68px; cursor: crosshair; touch-action: pan-y; }
 #timeline line.yr { stroke: var(--grid-line); }
-#timeline text.yr { fill: var(--faint); }
+#timeline text.yr { fill: var(--muted); font-weight: 600; }
 #timeline .us-area { fill: var(--us-area); }
 #timeline .us-line { stroke: var(--accent-line); }
 #timeline circle.ch { fill: var(--accent-line); }
