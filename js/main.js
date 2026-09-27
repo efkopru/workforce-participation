@@ -11,7 +11,7 @@ import { initialStateFromHash, bindPermalink } from './permalink.js';
 import { createMetricBar } from './components/metricBar.js';
 import { createViewToggle } from './components/viewToggle.js';
 import { createTooltip } from './components/tooltip.js?v=20260925-ylgnbu';
-import { createMap } from './components/map.js?v=20260925-ylgnbu';
+import { createMap } from './components/map.js?v=20260926-map50';
 import { createTimeline } from './components/timeline.js?v=20260925-ylgnbu';
 import { createChapters } from './components/chapters.js';
 import { createPanel } from './components/panel.js';
