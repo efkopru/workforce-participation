@@ -53,9 +53,9 @@ export function createMap(data, store, actions, tooltip) {
       .on('pointerleave', tooltip.hide)
       .on('click', (e, d) => actions.select(d.name));
     cells.append('rect').attr('width', CELL).attr('height', CELL).attr('rx', 8).attr('fill', `url(#${NO_DATA_ID})`);
-    cells.append('text').attr('class', 'abbr').attr('x', CELL / 2).attr('y', CELL / 2 - 2)
+    cells.append('text').attr('class', 'abbr').attr('x', CELL / 2).attr('y', CELL / 2 - 3)
       .attr('text-anchor', 'middle').text(d => d.abbr);
-    cells.append('text').attr('class', 'val').attr('x', CELL / 2).attr('y', CELL / 2 + 16)
+    cells.append('text').attr('class', 'val').attr('x', CELL / 2).attr('y', CELL / 2 + 18)
       .attr('text-anchor', 'middle');
   }
 
@@ -144,6 +144,5 @@ export function createMap(data, store, actions, tooltip) {
     const t = sel => instant || !dur(1) ? sel : sel.transition().duration(300);
     t(gGeo.style('pointer-events', geo ? 'all' : 'none')).style('opacity', geo ? 1 : 0);
     t(gGrid.style('pointer-events', geo ? 'none' : 'all')).style('opacity', geo ? 0 : 1);
-    d3.select('#mapWrap').classed('grid-view', !geo);   // CSS sizes the grid larger than the map
   }
 }

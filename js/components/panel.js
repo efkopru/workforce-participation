@@ -14,7 +14,7 @@ const SPARKS = [
   { col: 'quitR', label: 'Quit & hire rate', fmt: FMT.pct1, extra: 'hireR' },
   { col: 'awr', label: 'Unemployed per opening', fmt: FMT.r2, ref: 1 },
 ];
-const SW = 320, SH = 56, SM = { t: 4, b: 4, l: 2, r: 2 };
+const SW = 320, SH = 44, SM = { t: 4, b: 4, l: 2, r: 2 };
 
 export function createPanel(data, store, actions) {
   const panel = d3.select('#panel');

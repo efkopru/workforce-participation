@@ -45,7 +45,7 @@ button {
   align-items: flex-end;
   justify-content: space-between;
   gap: 18px;
-  padding: 22px 2px 14px;
+  padding: 16px 2px 12px;
 }
 .kicker {
   font-size: 11px;
@@ -58,10 +58,11 @@ button {
   font-family: var(--serif);
   font-weight: 700;
   font-size: clamp(26px, 3.4vw, 40px);
+  line-height: 1.15;
   margin: 4px 0 6px;
   letter-spacing: -0.01em;
 }
-.sub { margin: 0; color: var(--muted); max-width: 640px; }
+.sub { margin: 0; color: var(--muted); max-width: 900px; }
 
 .top-actions { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
 
@@ -156,8 +157,9 @@ main {
 }
 #map .cell:hover rect { stroke: #10131b; }
 #map .cell text { pointer-events: none; font-family: var(--sans); }
-#map .cell .abbr { font-size: 15px; font-weight: 700; }
-#map .cell .val { font-size: 9.5px; font-weight: 500; opacity: 0.85; }
+/* sized for the grid drawn at the map's width, where one tile is about 36-49px across */
+#map .cell .abbr { font-size: 22px; font-weight: 700; }
+#map .cell .val { font-size: 17px; font-weight: 500; opacity: 0.85; }
 
 #loadingGeo {
   position: absolute;
@@ -283,7 +285,7 @@ main {
   margin-bottom: 1px;
 }
 .spark-head .sv { font-size: 12px; color: var(--text); font-variant-numeric: tabular-nums; text-transform: none; letter-spacing: 0; }
-.spark-block svg { display: block; width: 100%; height: 56px; cursor: crosshair; }
+.spark-block svg { display: block; width: 100%; height: 44px; cursor: crosshair; }
 
 .spark-legend { font-size: 10px; color: var(--faint); margin: 6px 0 2px; }
 .spark-legend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin: 0 4px 0 10px; }
@@ -313,10 +315,10 @@ main {
   background: var(--bg2);
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 12px 18px 8px;
+  padding: 10px 16px 8px;
 }
 
-#chapters { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+#chapters { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 8px; }
 #chapters button {
   font-size: 11.5px;
   font-weight: 500;
@@ -348,16 +350,16 @@ main {
 .tl-row { display: flex; gap: 14px; align-items: flex-end; }
 
 #playBtn {
-  flex: 0 0 46px;
-  width: 46px;
-  height: 46px;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: var(--amber);
   color: #0b0e14;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 22px;
+  margin-bottom: 20px;             /* centred on the chart's plot area */
   transition: transform 0.12s, box-shadow 0.12s;
   box-shadow: 0 4px 18px rgba(251, 191, 36, 0.25);
 }
@@ -367,7 +369,7 @@ main {
 .tl-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; margin-bottom: 2px; }  /* caption wraps below the month on phones */
 #periodLabel {
   font-family: var(--serif);
-  font-size: 21px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--text);
   min-width: 175px;
@@ -375,8 +377,12 @@ main {
 }
 #caption { font-size: 12.5px; color: var(--muted); transition: opacity 0.25s; }
 #caption.chapter { color: var(--amber); }
+/* key for the two lines once a state is selected */
+#tlLegend { margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
+#tlLegend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin: 0 5px 0 12px; }
+#tlLegend i:first-child { margin-left: 0; }
 
-#timeline { display: block; width: 100%; height: 116px; cursor: crosshair; }
+#timeline { display: block; width: 100%; height: 68px; cursor: crosshair; }
 
 .hint { text-align: center; color: var(--faint); font-size: 11px; padding-top: 6px; }
 
@@ -474,12 +480,12 @@ main {
 }
 
 /* ── responsive ─────────────────────────────────────────────────── */
-/* Wide layouts: the map panel wraps the map, with the legend as a strip below it, and the side
-   panel takes the remaining width in two columns, so neither panel carries empty space. The tile
-   grid gets a wider panel so its state labels stay readable. */
+/* Wide layouts: the map panel wraps the map (or the tile grid, drawn at the same size), with the
+   legend as a strip below it, and the side panel takes the remaining width in two columns, so
+   neither panel carries empty space. The keyboard hint shares the chapter row, keeping the
+   timeline short enough for the whole atlas to fit in the window. */
 @media (min-width: 1021px) {
   #mapWrap { flex: 0 0 38%; display: flex; flex-direction: column; justify-content: center; padding: 12px 14px 10px; }
-  #mapWrap.grid-view { flex-basis: 55%; }
   #legend { position: static; display: grid; grid-template-columns: max-content minmax(120px, 230px) max-content; align-items: center; gap: 2px 14px; margin-top: 8px; padding: 8px 10px; backdrop-filter: none; }
   #legend .lg-title { grid-column: 1; grid-row: 1; margin: 0; }
   #legend .lg-bar { grid-column: 2; grid-row: 1; width: 100%; }
@@ -489,6 +495,10 @@ main {
   #panel { flex: 1 1 0; width: auto; max-height: none; display: grid; grid-template-columns: minmax(250px, 1fr) minmax(0, 1.3fr); column-gap: 24px; align-content: start; }
   #panel .rk-section > .rk-title:first-child { margin-top: 4px; }
   #sparks { display: grid; grid-template-columns: 1fr 1fr; column-gap: 16px; }
+  #timelineWrap { display: grid; grid-template-columns: 1fr auto; column-gap: 16px; align-items: start; }
+  #chapters { grid-column: 1; grid-row: 1; }
+  #timelineWrap .hint { grid-column: 2; grid-row: 1; padding-top: 5px; }
+  .tl-row { grid-column: 1 / -1; grid-row: 2; }
 }
 
 @media (max-width: 1020px) {
