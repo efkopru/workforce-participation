@@ -4,7 +4,7 @@
    The DOM skeleton is rebuilt only when the selection changes; everything
    else (numbers, bars, cursors) updates in place. */
 
-import { FMT, fin, metricById } from '../config.js';
+import { FMT, fin, fmtMonth, fmtMonYr, metricById } from '../config.js';
 
 /* sparkline catalogue (state mode) */
 const SPARKS = [
@@ -35,36 +35,46 @@ export function createPanel(data, store, actions) {
       ${statCard('open', 'Job openings')}${statCard('awr', 'Unemp / opening')}
     </div>`;
 
+  const keyNumbers = `
+    <section class="panel-main">
+      <h3 class="panel-title" id="keyTitle"></h3>
+      ${statGrid}
+    </section>`;
+
   function build(s) {
     sparks = [];
-    /* panel-main holds the summary, panel-side the lists or charts; wide layouts
-       show them side by side, narrow ones stack them. */
+    /* panel-head names the place across the full width; below it, panel-main holds
+       the key numbers and panel-side the lists or charts, each under its own title.
+       Wide layouts show the two side by side, narrow ones stack them. */
     if (!s.selected) {
       panel.html(`
-        <div class="panel-main">
+        <div class="panel-head">
           <h2>United States</h2>
           <div class="panel-sub">national aggregate of 50 states + DC · click any state to zoom in</div>
-          ${statGrid}
         </div>
-        <div class="panel-side rk-section">
-          <div class="rk-title" id="rk-hi-title"></div><div id="rk-hi"></div>
-          <div class="rk-title" id="rk-lo-title"></div><div id="rk-lo"></div>
-        </div>`);
+        ${keyNumbers}
+        <section class="panel-side rk-section">
+          <h3 class="panel-title" id="rk-title"></h3>
+          <div class="rk-title">Highest</div><div id="rk-hi"></div>
+          <div class="rk-title">Lowest</div><div id="rk-lo"></div>
+        </section>`);
       return;
     }
 
     const st = data.byState.get(s.selected);
+    const [first, last] = [data.periods[0], data.periods[data.N - 1]];
     panel.html(`
-      <div class="panel-main">
+      <div class="panel-head">
         <h2>${st.name}<button class="close-x" id="closeSel" title="Back to national view">✕</button></h2>
         <div class="panel-sub">vs the national picture · click charts to scrub time</div>
         <div class="rank-chip" id="rankChip"></div>
-        ${statGrid}
       </div>
-      <div class="panel-side">
+      ${keyNumbers}
+      <section class="panel-side">
+        <h3 class="panel-title">Trends · ${fmtMonYr(first)} – ${fmtMonYr(last)}</h3>
         <div class="spark-legend"><i style="background:#67e8f9"></i>${st.abbr}<i style="background:#8b93a7"></i>US</div>
         <div id="sparks"></div>
-      </div>`);
+      </section>`);
     d3.select('#closeSel').on('click', () => actions.select(null));
     buildSparks(st);
   }
@@ -131,6 +141,7 @@ export function createPanel(data, store, actions) {
     const i = s.idx;
     const src = s.selected ? data.byState.get(s.selected).vals : data.national;
 
+    document.getElementById('keyTitle').textContent = `Key numbers · ${fmtMonth(data.periods[i])}`;
     setStat('lfpr', FMT.pct1(src.lfpr[i]), delta(src.lfpr, i, FMT.pp, false));
     setStat('ur', FMT.pct1(src.ur[i]), delta(src.ur, i, FMT.pp, true));
     setStat('open', FMT.k(src.open[i]),
@@ -187,8 +198,7 @@ export function createPanel(data, store, actions) {
   function renderRankLists(s) {
     const m = metricById(s.metricId);
     const list = ranked(m, s.idx);
-    d3.select('#rk-hi-title').text(`Highest · ${m.label}`);
-    d3.select('#rk-lo-title').text(`Lowest · ${m.label}`);
+    d3.select('#rk-title').text(`How states compare · ${m.label}`);
 
     const ext = list.length ? [list[list.length - 1].v, list[0].v] : [0, 1];
     const w = d3.scaleLinear().domain([Math.min(...ext), Math.max(...ext)]).range([8, 100]);
