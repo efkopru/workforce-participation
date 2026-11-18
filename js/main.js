@@ -6,19 +6,19 @@
    module with a newer one. Changing any module means replacing the tag everywhere at once
    (see "Run it" in the README). */
 
-import { DATA_URL } from './config.js?v=20261117';
-import { loadData } from './data.js?v=20261117';
-import { createStore } from './store.js?v=20261117';
-import { createActions } from './actions.js?v=20261117';
-import { initModal, initTheme, isModalOpen, showLoadError } from './ui.js?v=20261117';
-import { initialStateFromHash, bindPermalink } from './permalink.js?v=20261117';
-import { createMetricBar } from './components/metricBar.js?v=20261117';
-import { createViewToggle } from './components/viewToggle.js?v=20261117';
-import { createTooltip } from './components/tooltip.js?v=20261117';
-import { createMap } from './components/map.js?v=20261117';
-import { createTimeline } from './components/timeline.js?v=20261117';
-import { createChapters } from './components/chapters.js?v=20261117';
-import { createPanel } from './components/panel.js?v=20261117';
+import { DATA_URL } from './config.js?v=20261118';
+import { loadData } from './data.js?v=20261118';
+import { createStore } from './store.js?v=20261118';
+import { createActions } from './actions.js?v=20261118';
+import { initModal, initTheme, isModalOpen, showLoadError } from './ui.js?v=20261118';
+import { initialStateFromHash, bindPermalink } from './permalink.js?v=20261118';
+import { createMetricBar } from './components/metricBar.js?v=20261118';
+import { createViewToggle } from './components/viewToggle.js?v=20261118';
+import { createTooltip } from './components/tooltip.js?v=20261118';
+import { createMap } from './components/map.js?v=20261118';
+import { createTimeline } from './components/timeline.js?v=20261118';
+import { createChapters } from './components/chapters.js?v=20261118';
+import { createPanel } from './components/panel.js?v=20261118';
 
 async function boot() {
   initTheme();                    // before the data loads, so the switch always works
@@ -85,8 +85,8 @@ function initKeyboard(actions) {
     }
   });
 
-  /* Firefox presses a focused button when Space is released, even after the keydown was
-     cancelled, so the release of a Space handled above is cancelled too */
+  /* Older Firefox presses a focused button when Space is released, even after the keydown was
+     cancelled (160 no longer does), so the release of a Space handled above is cancelled too */
   window.addEventListener('keyup', e => {
     if (e.key !== ' ' || !spaceTaken) return;
     spaceTaken = false;

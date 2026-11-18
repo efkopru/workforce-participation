@@ -2,8 +2,8 @@
    geographic layer (TopoJSON fetched async), crossfaded by view state.
    Owns the legend and the contextual map note. */
 
-import { MISSING, fin, dur, textOn, metricById, fmtMonth } from '../config.js?v=20261117';
-import { NO_DATA_ID } from '../data.js?v=20261117';
+import { MISSING, fin, dur, textOn, metricById, fmtMonth } from '../config.js?v=20261118';
+import { NO_DATA_ID } from '../data.js?v=20261118';
 
 const TOPO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/states-albers-10m.json';
 /* ^ the -albers variant is pre-projected to the 975×610 viewBox */
@@ -105,7 +105,10 @@ export function createMap(data, store, actions, tooltip) {
   /* ── painting ─────────────────────────────────────────────────── */
   function renderFills(s, ms) {
     const m = metricById(s.metricId), i = s.idx;
-    const tween = sel => ms > 0 ? sel.transition('fill').duration(ms) : sel;
+    /* An immediate change (a new month) also ends a metric fade that is still running: left
+       alone, the fade would finish on the colours of the month it started from and overwrite
+       this one. */
+    const tween = sel => ms > 0 ? sel.transition('fill').duration(ms) : sel.interrupt('fill');
 
     tween(gGeo.selectAll('path.state'))
       .attr('fill', f => data.fillFor(m, data.byState.get(f.properties.name).vals[m.col][i]));

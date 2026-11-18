@@ -2,7 +2,7 @@
      #m=ur&t=2020-04&s=Michigan&v=grid
    m = metric id · t = month (YYYY-MM) · s = selected state · v = map|grid */
 
-import { metricById } from './config.js?v=20261117';
+import { metricById } from './config.js?v=20261118';
 
 const fmtYM = d3.timeFormat('%Y-%m');
 

@@ -3,7 +3,7 @@
    series itself invites exploration. Owns the play button, period label,
    and caption. */
 
-import { fin, fmtMonth, fmtMonYr, metricById } from '../config.js?v=20261117';
+import { fin, fmtMonth, fmtMonYr, metricById } from '../config.js?v=20261118';
 
 const H = 68;
 const M = { t: 8, r: 12, b: 20, l: 12 };

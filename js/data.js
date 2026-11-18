@@ -1,7 +1,7 @@
 /* Data layer: fetch the CSV, parse it, derive everything the app needs.
    Pure data — no DOM access. Returns one immutable `data` object. */
 
-import { STATE_INFO, METRICS, FMT, fin, fmtMonth, fmtMonYr } from './config.js?v=20261117';
+import { STATE_INFO, METRICS, FMT, fin, fmtMonth, fmtMonYr } from './config.js?v=20261118';
 
 /* Missing months are painted with a hatch pattern the map defines under this id,
    so a gap can't be mistaken for a low value. */

@@ -1,7 +1,7 @@
 /* Metric selector pills. */
 
-import { METRICS } from '../config.js?v=20261117';
-import { keepActiveInView } from '../ui.js?v=20261117';
+import { METRICS } from '../config.js?v=20261118';
+import { keepActiveInView } from '../ui.js?v=20261118';
 
 export function createMetricBar(store, actions) {
   const bar = d3.select('#metricBar');

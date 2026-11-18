@@ -31,7 +31,7 @@ it takes to update the data.**
 Every module URL carries the same `?v=` tag (`styles.css` and `js/main.js` in
 `index.html`, and each `import` under `js/`), so a browser never pairs a cached
 module with a newer one. After changing any of them, replace the tag everywhere
-in one find-and-replace — it is `v=20261117` now.
+in one find-and-replace — it is `v=20261118` now.
 
 D3 and TopoJSON load from jsDelivr at exact versions with integrity hashes, so
 the browser refuses a file that differs from the one the app was tested with.

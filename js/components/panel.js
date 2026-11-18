@@ -4,7 +4,7 @@
    The DOM skeleton is rebuilt only when the selection changes; everything
    else (numbers, bars, cursors) updates in place. */
 
-import { FMT, fin, fmtMonth, fmtMonYr, metricById } from '../config.js?v=20261117';
+import { FMT, fin, fmtMonth, fmtMonYr, metricById } from '../config.js?v=20261118';
 
 /* sparkline catalogue (state mode); `extra` is a second state series, keyed in the label */
 const SPARKS = [
