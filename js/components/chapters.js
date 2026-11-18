@@ -1,7 +1,7 @@
 /* Story-chapter buttons (dates are derived from the data, see data.js). */
 
-import { fmtMonYr } from '../config.js';
-import { keepActiveInView } from '../ui.js?v=20260927-light';
+import { fmtMonYr } from '../config.js?v=20261117';
+import { keepActiveInView } from '../ui.js?v=20261117';
 
 export function createChapters(data, store, actions) {
   const row = d3.select('#chapters');

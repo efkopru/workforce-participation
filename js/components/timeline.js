@@ -3,19 +3,21 @@
    series itself invites exploration. Owns the play button, period label,
    and caption. */
 
-import { fin, fmtMonth, metricById } from '../config.js';
+import { fin, fmtMonth, fmtMonYr, metricById } from '../config.js?v=20261117';
 
 const H = 68;
 const M = { t: 8, r: 12, b: 20, l: 12 };
 
 export function createTimeline(data, store, actions) {
   const svg = d3.select('#timeline');
+  const playBtn = d3.select('#playBtn');
   const periodLabel = d3.select('#periodLabel');
   const caption = d3.select('#caption');
   const legend = d3.select('#tlLegend');
   let x, y, cursor, natDot;            // chart internals, rebuilt by build()
+  let pressed = null;                  // chapter marker under a press that has not become a drag
 
-  d3.select('#playBtn').on('click', actions.togglePlay);
+  playBtn.on('click', actions.togglePlay);
 
   store.subscribe((s, changed) => {
     if (changed.has('metricId') || changed.has('selected')) build(s);
@@ -24,6 +26,39 @@ export function createTimeline(data, store, actions) {
     if (changed.has('idx') || changed.has('metricId') ||
         changed.has('selected') || changed.has('chapterId')) renderCaption(s);
   });
+
+  /* Scrub anywhere on the chart. The press captures the pointer, so a chapter marker never
+     receives a click of its own: a press on one opens its chapter on release instead, unless
+     the pointer has moved off into a drag by then. */
+  svg.attr('aria-valuemin', 0).attr('aria-valuemax', data.N - 1)
+    .on('pointerdown', ev => {
+      svg.node().setPointerCapture(ev.pointerId);
+      const marker = ev.target.closest('.ch');
+      pressed = marker ? { chapter: d3.select(marker).datum(), x: ev.clientX } : null;
+      if (!pressed) scrub(ev);
+    })
+    .on('pointermove', ev => {
+      if (!(ev.buttons & 1)) return;
+      if (pressed && Math.abs(ev.clientX - pressed.x) < 5) return;
+      pressed = null;
+      scrub(ev);
+    })
+    .on('pointerup', ev => {
+      if (pressed) actions.gotoChapter(pressed.chapter);
+      pressed = null;
+      if (svg.node().hasPointerCapture(ev.pointerId)) svg.node().releasePointerCapture(ev.pointerId);
+    })
+    .on('pointercancel', () => { pressed = null; })
+    /* the chart is also a slider: ←/→ work page-wide (main.js), these while it has focus */
+    .on('keydown', ev => {
+      if (ev.altKey || ev.ctrlKey || ev.metaKey) return;
+      const i = store.get().idx;
+      const to = { Home: 0, End: data.N - 1, PageUp: i + 12, PageDown: i - 12,
+                   ArrowUp: i + 1, ArrowDown: i - 1 }[ev.key];
+      if (to == null) return;
+      actions.step(to - i);
+      ev.preventDefault();
+    });
 
   build(store.get());
   renderCaption(store.get());
@@ -53,13 +88,15 @@ export function createTimeline(data, store, actions) {
     const pad = (hi - lo) * 0.12;
     y = d3.scaleLinear().domain([lo - pad, hi + pad]).range([H - M.b, M.t]);
 
-    /* year gridlines + labels */
+    /* year gridlines + labels; the first month gets a label of its own only when the data
+       does not start in a January, which already has one */
     const years = d3.timeYear.range(d3.timeYear.ceil(data.periods[0]), data.periods[data.N - 1]);
+    const labelled = +years[0] === +data.periods[0] ? years : [data.periods[0], ...years];
     svg.selectAll('line.yr').data(years).join('line').attr('class', 'yr')
       .attr('x1', d => x(d)).attr('x2', d => x(d))
       .attr('y1', M.t).attr('y2', H - M.b);
-    svg.selectAll('text.yr').data([data.periods[0], ...years]).join('text').attr('class', 'yr')
-      .attr('x', d => x(d) + 4).attr('y', H - 7)
+    svg.selectAll('text.yr').data(labelled).join('text').attr('class', 'yr')
+      .attr('x', d => x(d) + 4).attr('y', H - 2)
       .attr('font-size', 10)
       .text(d3.timeFormat('’%y'));
 
@@ -84,12 +121,11 @@ export function createTimeline(data, store, actions) {
     legend.attr('hidden', sel ? null : '')
       .html(sel ? `<i class="key-us"></i>United States<i class="key-state"></i>${s.selected}` : '');
 
-    /* chapter markers on the axis */
+    /* chapter markers in the strip between the plot and the year labels; the stylesheet
+       gives each a wide transparent stroke, so the target is bigger than the dot */
     svg.selectAll('circle.ch').data(data.chapters).join('circle').attr('class', 'ch')
-      .attr('cx', c => x(data.periods[c.idx])).attr('cy', H - M.b + 6).attr('r', 3)
-      .attr('opacity', 0.7).style('cursor', 'pointer')
-      .on('click', (e, c) => actions.gotoChapter(c))
-      .append('title').text(c => c.title);
+      .attr('cx', c => x(data.periods[c.idx])).attr('cy', H - M.b + 5).attr('r', 3)
+      .append('title').text(c => `${c.title} · ${fmtMonYr(data.periods[c.idx])}`);
 
     /* cursor */
     cursor = svg.append('g').style('pointer-events', 'none');
@@ -97,11 +133,6 @@ export function createTimeline(data, store, actions) {
       .attr('stroke-width', 1.2).attr('opacity', 0.85);
     natDot = cursor.append('circle').attr('class', 'cursor-dot').attr('r', 4)
       .attr('stroke-width', 1.5);
-
-    /* scrub anywhere on the chart */
-    svg.on('pointerdown', ev => { svg.node().setPointerCapture(ev.pointerId); scrub(ev); })
-       .on('pointermove', ev => { if (ev.buttons & 1) scrub(ev); })
-       .on('pointerup', ev => svg.node().releasePointerCapture(ev.pointerId));
 
     updateCursor(s);
   }
@@ -123,6 +154,7 @@ export function createTimeline(data, store, actions) {
     cursor.attr('transform', `translate(${x(data.periods[s.idx])},0)`);
     const v = data.national[metricById(s.metricId).col][s.idx];
     natDot.attr('cy', fin(v) ? y(v) : H - M.b).attr('opacity', fin(v) ? 1 : 0.25);
+    svg.attr('aria-valuenow', s.idx).attr('aria-valuetext', fmtMonth(data.periods[s.idx]));
   }
 
   /* ── labels ───────────────────────────────────────────────────── */
@@ -150,6 +182,7 @@ export function createTimeline(data, store, actions) {
   }
 
   function renderPlayIcon(s) {
+    playBtn.attr('aria-label', s.playing ? 'Pause' : 'Play');
     d3.select('#playIcon').attr('d', s.playing
       ? 'M7 5h4v14H7zM13 5h4v14h-4z'    // pause
       : 'M8 5v14l11-7z');               // play

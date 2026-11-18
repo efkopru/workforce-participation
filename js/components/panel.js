@@ -4,17 +4,17 @@
    The DOM skeleton is rebuilt only when the selection changes; everything
    else (numbers, bars, cursors) updates in place. */
 
-import { FMT, fin, fmtMonth, fmtMonYr, metricById } from '../config.js';
+import { FMT, fin, fmtMonth, fmtMonYr, metricById } from '../config.js?v=20261117';
 
-/* sparkline catalogue (state mode) */
+/* sparkline catalogue (state mode); `extra` is a second state series, keyed in the label */
 const SPARKS = [
   { col: 'lfpr', label: 'Participation rate', fmt: FMT.pct1 },
   { col: 'ur', label: 'Unemployment rate', fmt: FMT.pct1 },
   { col: 'openRate', label: 'Job openings rate', fmt: FMT.pct1 },
-  { col: 'quitR', label: 'Quit & hire rate', fmt: FMT.pct1, extra: 'hireR' },
+  { col: 'quitR', label: 'Quit &amp; <i class="key-extra"></i>hire rate', fmt: FMT.pct1, extra: 'hireR' },
   { col: 'awr', label: 'Unemployed per opening', fmt: FMT.r2, ref: 1 },
 ];
-const SW = 320, SH = 44, SM = { t: 4, b: 4, l: 2, r: 2 };
+const SH = 44, SM = { t: 4, b: 4, l: 3, r: 3 };
 
 export function createPanel(data, store, actions) {
   const panel = d3.select('#panel');
@@ -23,6 +23,18 @@ export function createPanel(data, store, actions) {
   store.subscribe((s, changed) => {
     if (changed.has('selected')) build(s);
     if (changed.has('selected') || changed.has('idx') || changed.has('metricId')) update(s);
+  });
+
+  /* the sparklines are drawn at their true width, so they are redrawn when it changes */
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const s = store.get();
+      if (!s.selected) return;
+      buildSparks(data.byState.get(s.selected));
+      updateSparkCursors(s.idx);
+    }, 150);
   });
 
   /* ── skeletons ────────────────────────────────────────────────── */
@@ -41,7 +53,24 @@ export function createPanel(data, store, actions) {
       ${statGrid}
     </section>`;
 
+  /* Every state by name: the way in for keyboard and screen-reader users, and for anyone
+     aiming at a shape as small as Rhode Island on a phone. The select lies invisible over
+     its label, so the control stays compact while still opening the platform's own list. */
+  const statePicker = selected => `
+    <label class="state-pick ghost-btn">
+      <span aria-hidden="true"><span class="pick-wide">Jump to state</span><span class="pick-narrow">States</span></span>
+      <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5"/></svg>
+      <select id="statePick" aria-label="Jump to a state">
+        <option value="">United States</option>
+        ${[...data.byState.keys()].map(name =>
+          `<option${name === selected ? ' selected' : ''}>${name}</option>`).join('')}
+      </select>
+    </label>`;
+
   function build(s) {
+    /* a keyboard user who changes the selection from inside the panel keeps a place in it */
+    const refocus = panel.node().contains(document.activeElement)
+      && document.activeElement.matches(':focus-visible');
     sparks = [];
     /* panel-head names the place across the full width; below it, panel-main holds
        the key numbers and panel-side the lists or charts, each under its own title.
@@ -49,7 +78,7 @@ export function createPanel(data, store, actions) {
     if (!s.selected) {
       panel.html(`
         <div class="panel-head">
-          <h2>United States</h2>
+          <div class="head-row"><h2>United States</h2><div class="head-tools">${statePicker(null)}</div></div>
           <div class="panel-sub">national aggregate of 50 states + DC · click any state to zoom in</div>
         </div>
         ${keyNumbers}
@@ -58,36 +87,47 @@ export function createPanel(data, store, actions) {
           <div class="rk-title">Highest</div><div id="rk-hi"></div>
           <div class="rk-title">Lowest</div><div id="rk-lo"></div>
         </section>`);
-      return;
+    } else {
+      const st = data.byState.get(s.selected);
+      const [first, last] = [data.periods[0], data.periods[data.N - 1]];
+      panel.html(`
+        <div class="panel-head">
+          <div class="head-row"><h2>${st.name}</h2>
+            <div class="head-tools">${statePicker(st.name)}
+              <button class="close-x" id="closeSel" type="button" title="Back to national view" aria-label="Back to national view">✕</button>
+            </div></div>
+          <div class="panel-sub">vs the national picture · click charts to scrub time</div>
+          <div class="rank-chip" id="rankChip"></div>
+        </div>
+        ${keyNumbers}
+        <section class="panel-side">
+          <h3 class="panel-title">Trends · ${fmtMonYr(first)} – ${fmtMonYr(last)}</h3>
+          <div class="spark-legend"><i class="key-state"></i>${st.abbr}<i class="key-us-spark"></i>US</div>
+          <div id="sparks"></div>
+        </section>`);
+      d3.select('#closeSel').on('click', () => actions.select(null));
+      buildSparks(st);
     }
-
-    const st = data.byState.get(s.selected);
-    const [first, last] = [data.periods[0], data.periods[data.N - 1]];
-    panel.html(`
-      <div class="panel-head">
-        <h2>${st.name}<button class="close-x" id="closeSel" title="Back to national view">✕</button></h2>
-        <div class="panel-sub">vs the national picture · click charts to scrub time</div>
-        <div class="rank-chip" id="rankChip"></div>
-      </div>
-      ${keyNumbers}
-      <section class="panel-side">
-        <h3 class="panel-title">Trends · ${fmtMonYr(first)} – ${fmtMonYr(last)}</h3>
-        <div class="spark-legend"><i class="key-state"></i>${st.abbr}<i class="key-us-spark"></i>US</div>
-        <div id="sparks"></div>
-      </section>`);
-    d3.select('#closeSel').on('click', () => actions.select(null));
-    buildSparks(st);
+    const pick = d3.select('#statePick').on('change', function () { actions.select(this.value || null); });
+    if (refocus) pick.node().focus();
   }
 
   function buildSparks(st) {
     const wrap = d3.select('#sparks');
-    for (const spec of SPARKS) {
+    wrap.selectAll('*').remove();
+    sparks = [];
+    const blocks = SPARKS.map(spec => {
       const block = wrap.append('div').attr('class', 'spark-block');
       const head = block.append('div').attr('class', 'spark-head');
-      head.append('span').text(spec.label);
-      const valEl = head.append('span').attr('class', 'sv');
-      const svg = block.append('svg')
-        .attr('viewBox', `0 0 ${SW} ${SH}`).attr('preserveAspectRatio', 'none');
+      head.append('span').html(spec.label);
+      return { spec, valEl: head.append('span').attr('class', 'sv'), svg: block.append('svg') };
+    });
+
+    for (const { spec, valEl, svg } of blocks) {
+      /* measured once every block is laid out: a fixed viewBox stretched to fit would
+         squash the dots into ovals and thin the steep parts of the lines */
+      const W = Math.max(60, svg.node().parentNode.clientWidth);
+      svg.attr('viewBox', `0 0 ${W} ${SH}`).attr('preserveAspectRatio', 'none');
 
       const stV = st.vals[spec.col], natV = data.national[spec.col];
       const extraV = spec.extra ? st.vals[spec.extra] : null;
@@ -100,14 +140,14 @@ export function createPanel(data, store, actions) {
       if (spec.ref != null) { lo = Math.min(lo, spec.ref); hi = Math.max(hi, spec.ref); }
       const pad = (hi - lo) * 0.1;
 
-      const x = d3.scaleLinear().domain([0, data.N - 1]).range([SM.l, SW - SM.r]);
+      const x = d3.scaleLinear().domain([0, data.N - 1]).range([SM.l, W - SM.r]);
       const y = d3.scaleLinear().domain([lo - pad, hi + pad]).range([SH - SM.b, SM.t]);
       const mkLine = arr => d3.line()
         .defined(i => fin(arr[i])).x(i => x(i)).y(i => y(arr[i]))(d3.range(data.N));
 
       /* colours come from the theme stylesheet via these classes */
       if (spec.ref != null) svg.append('line').attr('class', 'ref-line')
-        .attr('x1', SM.l).attr('x2', SW - SM.r).attr('y1', y(spec.ref)).attr('y2', y(spec.ref))
+        .attr('x1', SM.l).attr('x2', W - SM.r).attr('y1', y(spec.ref)).attr('y2', y(spec.ref))
         .attr('stroke-dasharray', '2 4');
       svg.append('path').attr('class', 'us-line').attr('d', mkLine(natV)).attr('fill', 'none')
         .attr('stroke-width', 1).attr('stroke-dasharray', '2 3').attr('opacity', 0.8);
@@ -199,18 +239,44 @@ export function createPanel(data, store, actions) {
     const list = ranked(m, s.idx);
     d3.select('#rk-title').text(`How states compare · ${m.label}`);
 
-    const ext = list.length ? [list[list.length - 1].v, list[0].v] : [0, 1];
-    const w = d3.scaleLinear().domain([Math.min(...ext), Math.max(...ext)]).range([8, 100]);
-    const row = d => `
-      <div class="rk-row" data-state="${d.name}">
-        <span class="rk-name">${d.name}</span>
-        <span class="rk-bar-wrap"><span class="rk-bar" style="width:${w(d.v)}%;background:${data.fillFor(m, d.v)}"></span></span>
-        <span class="rk-val">${m.fmt(d.v)}</span>
-      </div>`;
-    const empty = '<div class="rk-empty">No data this month.</div>';
-    d3.select('#rk-hi').html(list.length ? list.slice(0, 5).map(row).join('') : empty);
-    d3.select('#rk-lo').html(list.length ? list.slice(-5).reverse().map(row).join('') : empty);
-    panel.selectAll('.rk-row').on('click', function () { actions.select(this.dataset.state); });
+    /* A bar runs from the metric's baseline (zero, or the centre of a diverging metric) to
+       the state's value, on one scale for both lists. Its length is then the size of the
+       value or of the change: the steepest fall gets the longest bar, not the shortest. */
+    const base = m.kind === 'div' ? m.center : 0;
+    const values = list.map(d => d.v);
+    const pos = d3.scaleLinear()
+      .domain([Math.min(base, ...values), Math.max(base, ...values)]).range([0, 100]);
+
+    const fill = (id, rows) => {
+      const box = d3.select(id);
+      box.selectAll('.rk-empty').data(rows.length ? [] : [0]).join('div')
+        .attr('class', 'rk-empty').text('No data this month.');
+      /* rows are joined by position and updated in place, so a row that has keyboard
+         focus keeps it while the months play */
+      const row = box.selectAll('button.rk-row').data(rows)
+        .join(enter => {
+          const b = enter.append('button').attr('type', 'button').attr('class', 'rk-row');
+          b.append('span').attr('class', 'rk-name');
+          const wrap = b.append('span').attr('class', 'rk-bar-wrap');
+          wrap.append('span').attr('class', 'rk-track').append('span').attr('class', 'rk-bar');
+          wrap.append('span').attr('class', 'rk-base');
+          b.append('span').attr('class', 'rk-val');
+          return b;
+        })
+        .on('click', (e, d) => actions.select(d.name));
+      row.select('.rk-name').text(d => d.name);
+      row.select('.rk-val').text(d => m.fmt(d.v));
+      row.select('.rk-bar')
+        .classed('below', d => d.v < base)
+        .style('left', d => Math.min(pos(d.v), pos(base)) + '%')
+        .style('width', d => Math.abs(pos(d.v) - pos(base)) + '%')
+        .style('background', d => data.fillFor(m, d.v));
+      /* diverging metrics mark their baseline, which can sit anywhere along the track */
+      row.select('.rk-base').attr('hidden', m.kind === 'div' ? null : '')
+        .style('left', pos(base) + '%');
+    };
+    fill('#rk-hi', list.slice(0, 5));
+    fill('#rk-lo', list.slice(-5).reverse());
   }
 
   /* initial paint (after all const templates above are initialized) */

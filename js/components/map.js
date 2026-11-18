@@ -2,10 +2,10 @@
    geographic layer (TopoJSON fetched async), crossfaded by view state.
    Owns the legend and the contextual map note. */
 
-import { MISSING, fin, dur, textOn, metricById } from '../config.js';
-import { NO_DATA_ID } from '../data.js?v=20260926-oct';
+import { MISSING, fin, dur, textOn, metricById, fmtMonth } from '../config.js?v=20261117';
+import { NO_DATA_ID } from '../data.js?v=20261117';
 
-const TOPO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json';
+const TOPO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/states-albers-10m.json';
 /* ^ the -albers variant is pre-projected to the 975×610 viewBox */
 
 const CELL = 70, GAP = 6;
@@ -19,6 +19,8 @@ export function createMap(data, store, actions, tooltip) {
   const gGrid = svg.append('g').attr('class', 'g-grid');
   const legend = d3.select('#legend');
   const note = d3.select('#mapNote');
+  const shapes = new Map();             // state name → its path data, once the shapes load
+  let hoverOutline, selectedOutline;    // drawn above every shape (see loadGeo)
 
   buildGrid();
   loadGeo();
@@ -71,18 +73,25 @@ export function createMap(data, store, actions, tooltip) {
       const features = topojson.feature(topo, topo.objects.states).features
         .filter(f => data.byState.has(f.properties.name));
       const path = d3.geoPath();        // pre-projected → identity
+      for (const f of features) shapes.set(f.properties.name, path(f));
 
       gGeo.selectAll('path.state').data(features, f => f.properties.name).join('path')
         .attr('class', 'state')
-        .attr('d', path)
+        .attr('d', f => shapes.get(f.properties.name))
         .attr('fill', `url(#${NO_DATA_ID})`)
+        .on('pointerenter', (e, f) => hoverOutline.attr('d', shapes.get(f.properties.name)))
         .on('pointermove', (e, f) => tooltip.show(e, f.properties.name))
-        .on('pointerleave', tooltip.hide)
+        .on('pointerleave', () => { tooltip.hide(); hoverOutline.attr('d', null); })
         .on('click', (e, f) => actions.select(f.properties.name));
       gGeo.append('path')
         .attr('d', path(topojson.mesh(topo, topo.objects.states, (a, b) => a !== b)))
         .attr('fill', 'none').attr('stroke', 'rgba(255,255,255,0.9)')
         .attr('stroke-width', 0.6).style('pointer-events', 'none');
+      /* The selected and the hovered state are outlined by two paths above every shape and
+         the border mesh. A stroke on the state itself is half covered by whichever
+         neighbours are drawn after it. */
+      selectedOutline = gGeo.append('path').attr('class', 'state-outline selected');
+      hoverOutline = gGeo.append('path').attr('class', 'state-outline');
 
       renderFills(store.get(), 0);
       actions.geoLoaded();              // → store → applyView crossfade
@@ -98,11 +107,9 @@ export function createMap(data, store, actions, tooltip) {
     const m = metricById(s.metricId), i = s.idx;
     const tween = sel => ms > 0 ? sel.transition('fill').duration(ms) : sel;
 
-    const states = gGeo.selectAll('path.state')
-      .classed('selected', f => f.properties.name === s.selected);
-    states.filter('.selected').raise();         // keep its outline above the neighbours
-    tween(states)
+    tween(gGeo.selectAll('path.state'))
       .attr('fill', f => data.fillFor(m, data.byState.get(f.properties.name).vals[m.col][i]));
+    if (selectedOutline) selectedOutline.attr('d', shapes.get(s.selected) ?? null);
 
     const cells = gGrid.selectAll('g.cell')
       .classed('selected', d => d.name === s.selected);
@@ -114,6 +121,7 @@ export function createMap(data, store, actions, tooltip) {
       .attr('fill', d => textOn(data.fillFor(m, d.vals[m.col][i])))
       .text(d => fin(d.vals[m.col][i]) ? m.cell(d.vals[m.col][i]) : '·');
 
+    svg.attr('aria-label', `Map of U.S. states shaded by ${m.label}, ${fmtMonth(data.periods[i])}`);
     renderNote(s, m, i);
   }
 
@@ -124,16 +132,18 @@ export function createMap(data, store, actions, tooltip) {
 
   function renderLegend(s) {
     const m = metricById(s.metricId);
-    const domain = data.domainOf(m), scale = data.scaleOf(m);
-    const [a, b] = [domain[0], domain[domain.length - 1]];
-    const stops = d3.range(0, 1.001, 1 / 22).map(t => scale(a + t * (b - a)));
-    const labels = m.kind === 'div'
-      ? [m.fmt(domain[0]), m.fmt(domain[1]), m.fmt(domain[2])]
-      : [m.fmt(domain[0]), '', m.fmt(domain[1])];
+    const domain = data.domainOf(m), ramp = data.scaleOf(m).interpolator();
+    /* The bar shows the ramp itself, so its left edge, middle and right edge are the three
+       domain values labelled below it. A diverging scale gives each side of its centre half
+       the ramp even when the two sides span unequal ranges; sampling the bar evenly by value
+       instead would leave the centre label under a colour that is not the centre's. */
+    const stops = d3.range(23).map(k => ramp(k / 22));
+    /* the scale is clamped, so its two ends also stand for every value beyond them */
+    const [lo, hi] = [`≤ ${m.fmt(domain[0])}`, `≥ ${m.fmt(domain[domain.length - 1])}`];
     legend.html(`
       <div class="lg-title">${m.label}</div>
       <div class="lg-bar" style="background:linear-gradient(to right,${stops.join(',')})"></div>
-      <div class="lg-labels"><span>${labels[0]}</span><span>${labels[1]}</span><span>${labels[2]}</span></div>
+      <div class="lg-labels"><span>${lo}</span><span>${m.kind === 'div' ? m.fmt(domain[1]) : ''}</span><span>${hi}</span></div>
       <div class="lg-nodata"><i></i>No data</div>
       ${m.note ? `<div class="lg-note">${m.note}</div>` : ''}`);
   }

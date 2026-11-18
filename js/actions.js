@@ -2,7 +2,7 @@
    directly, so every behavior (play, scrub, chapter jumps, selection)
    has exactly one implementation. */
 
-import { toast } from './ui.js?v=20260927-light';
+import { toast } from './ui.js?v=20261117';
 
 const TICK_MS = 340;          // playback speed: one month per tick
 
@@ -40,7 +40,13 @@ export function createActions(store, data) {
     togglePlay: () => (store.get().playing ? pause() : play()),
     step: delta => { pause(); seek(store.get().idx + delta); },
 
-    setMetric: id => store.set({ metricId: id }),
+    /* a chapter that set its own metric ends when the reader picks another one: its
+       caption describes a map that is no longer showing */
+    setMetric: id => {
+      const s = store.get();
+      const ch = s.chapterId && data.chapters.find(c => c.id === s.chapterId);
+      store.set({ metricId: id, chapterId: ch && ch.metric && ch.metric !== id ? null : s.chapterId });
+    },
 
     /* click toggles: same state again → back to national view */
     select: name => {

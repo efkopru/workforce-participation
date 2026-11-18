@@ -3,20 +3,25 @@
 
 let toastTimer = null;
 
+/* #toast is a live region that stays in the page and is shown by a class: screen readers
+   announce text that arrives in a region they already know, not one that was display:none. */
 export function toast(msg) {
-  const el = d3.select('#toast').attr('hidden', null).text(msg);
+  const el = d3.select('#toast').text(msg).classed('show', true);
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.attr('hidden', ''), 4200);
+  toastTimer = setTimeout(() => el.classed('show', false).text(''), 4200);
 }
 
+/* The about panel is a native <dialog>: showModal() moves focus into it, keeps Tab inside,
+   closes on Esc and hands focus back to the button that opened it. */
 export function initModal() {
-  const back = d3.select('#modalBack');
-  d3.select('#aboutBtn').on('click', () => back.attr('hidden', null));
-  d3.select('#modalClose').on('click', () => back.attr('hidden', ''));
-  back.on('click', e => { if (e.target.id === 'modalBack') back.attr('hidden', ''); });
+  const dialog = document.getElementById('about');
+  d3.select('#aboutBtn').on('click', () => dialog.showModal());
+  d3.select('#modalClose').on('click', () => dialog.close());
+  /* the dialog's content fills its box, so a click that lands on the dialog itself is on the backdrop */
+  dialog.addEventListener('click', e => { if (e.target === dialog) dialog.close(); });
 }
 
-export const isModalOpen = () => !document.getElementById('modalBack').hidden;
+export const isModalOpen = () => document.getElementById('about').open;
 
 /* Light/dark theme. Light is the default; an inline script in index.html applies
    a saved choice before first paint. This wires the header switch and remembers
@@ -55,9 +60,12 @@ export function keepActiveInView(row) {
    an inline guard in index.html handles it. */
 export function showLoadError(err) {
   d3.select('main').html(`
-    <div class="load-error">
+    <div class="load-error" role="alert">
       <h2>Couldn’t load the data</h2>
-      <p><code>${String(err.message || err)}</code></p>
+      <p><code></code></p>
       <p>Check that <em>State-Grid view.csv</em> sits next to <em>index.html</em>.</p>
     </div>`);
+  d3.select('main code').text(String(err.message || err));
+  /* the metric pills and the timeline have nothing to drive without data */
+  d3.selectAll('#metricBar, #timelineWrap').attr('hidden', '');
 }

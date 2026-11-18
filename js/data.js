@@ -1,7 +1,7 @@
 /* Data layer: fetch the CSV, parse it, derive everything the app needs.
    Pure data — no DOM access. Returns one immutable `data` object. */
 
-import { STATE_INFO, METRICS, FMT, fin, fmtMonth, fmtMonYr } from './config.js';
+import { STATE_INFO, METRICS, FMT, fin, fmtMonth, fmtMonYr } from './config.js?v=20261117';
 
 /* Missing months are painted with a hatch pattern the map defines under this id,
    so a gap can't be mistaken for a low value. */
@@ -98,7 +98,8 @@ function aggregateNational(byState, N, baseIdx) {
     /* Labor-force (LAUS) and job-openings (JOLTS) sums are independent: LAUS is
        missing for Oct 2025, and state JOLTS ends before LAUS. Mixed ratios need both. */
     let pop = 0, lf = 0, emp = 0, unemp = 0, open = 0, quits = 0, hires = 0;
-    let laus = true, jolts = true;
+    let quitW = 0, hireW = 0;                   // published state rates × state employment
+    let laus = true, jolts = true, rates = true;
     for (const st of byState.values()) {
       const v = st.vals;
       if (fin(v.pop[i]) && fin(v.lf[i]) && fin(v.emp[i]) && fin(v.unemp[i])) {
@@ -107,6 +108,9 @@ function aggregateNational(byState, N, baseIdx) {
       if (fin(v.open[i]) && fin(v.quits[i]) && fin(v.hires[i])) {
         open += v.open[i]; quits += v.quits[i]; hires += v.hires[i];
       } else jolts = false;
+      if (fin(v.quitR[i]) && fin(v.hireR[i]) && fin(v.emp[i])) {
+        quitW += v.quitR[i] * v.emp[i]; hireW += v.hireR[i] * v.emp[i];
+      } else rates = false;
     }
     if (laus) {
       nat.pop[i] = pop;     nat.lf[i] = lf;      nat.lfpr[i] = lf / pop * 100;
@@ -116,8 +120,12 @@ function aggregateNational(byState, N, baseIdx) {
     if (laus && jolts) {
       nat.openRate[i] = open / (emp + open) * 100;
       nat.short[i] = unemp - open;              nat.awr[i] = unemp / open;
-      nat.quitR[i] = quits / emp * 100;         nat.hireR[i] = hires / emp * 100;
     }
+    /* BLS divides quits and hires by payroll employment, which the CSV does not carry.
+       Dividing the national counts by the labor-force employment sum instead would put the
+       nation 0.1–0.2 points below the states' published rates, so the national rate is the
+       employment-weighted average of those. */
+    if (laus && rates) { nat.quitR[i] = quitW / emp; nat.hireR[i] = hireW / emp; }
   }
   for (let i = baseIdx + 1; i < N; i++) {
     nat.lfprD[i]  = nat.lfpr[i] - nat.lfpr[baseIdx];

@@ -28,9 +28,19 @@ directly shows instructions instead of a blank page). No build step, no
 dependencies to install — **editing the CSV and refreshing the page is all
 it takes to update the data.**
 
-Browser code uses versioned URLs for the entry module and recently changed
-imports. When updating those modules, bump their query versions and the entry
-version in `index.html` so cached JavaScript does not outlive the new page.
+Every module URL carries the same `?v=` tag (`styles.css` and `js/main.js` in
+`index.html`, and each `import` under `js/`), so a browser never pairs a cached
+module with a newer one. After changing any of them, replace the tag everywhere
+in one find-and-replace — it is `v=20261117` now.
+
+D3 and TopoJSON load from jsDelivr at exact versions with integrity hashes, so
+the browser refuses a file that differs from the one the app was tested with.
+To move to a newer version, change the version in the `<script>` tag in
+`index.html` and replace its `integrity` value with the output of:
+
+```bash
+node -e "fetch(process.argv[1]).then(r=>r.arrayBuffer()).then(b=>console.log('sha256-'+require('crypto').createHash('sha256').update(Buffer.from(b)).digest('base64')))" https://cdn.jsdelivr.net/npm/d3@7.9.2/dist/d3.min.js
+```
 
 ## What you can do
 
@@ -40,18 +50,27 @@ version in `index.html` so cached JavaScript does not outlive the new page.
   selected metric, so spikes show you where to look.
 - **Story chapters** — buttons computed *from the data*: peak national
   unemployment, peak quit rate, the tightest unemployed-per-opening ratio,
-  and the latest available month.
+  and the latest available month. The dots under the timeline open the same
+  chapters. A chapter that sets a metric ends when you pick another one.
 - **Two map projections** — geographic (Albers) and an equal-size tile grid.
 - **Click any state** for sparklines vs. the national average, a live rank
-  chip, and its line overlaid on the timeline.
+  chip, and its line overlaid on the timeline — or pick it by name from
+  *Jump to state* in the side panel (*States* on a phone), which is easier
+  than hitting Rhode Island on a small screen.
 - **Share what you see** — the URL hash tracks your view, e.g.
   `#m=ur&t=2020-04&s=Michigan` (metric · month · state · `&v=grid` for grid view).
+  Pasting such a link into the open atlas switches to that view.
 - **Light and dark themes** — opens in the light theme; the moon/sun button
   switches and the choice is remembered in the browser.
 - **Phones and tablets** — the layout stacks, the metric and chapter buttons
   scroll sideways in one row, and dragging across the timeline or a state's
   charts changes the month.
-- `←`/`→` step months, `Esc` clears the selection. Honors `prefers-reduced-motion`.
+- **Keyboard** — `←`/`→` step months, `Space` plays or pauses, `Esc` clears
+  the selection. The buttons, the state list and the timeline can all be
+  reached with `Tab`; on a button reached that way `Space` presses the
+  button, as usual. The timeline is a slider:
+  with focus on it, `Home`/`End` jump to the first and last month and
+  `PageUp`/`PageDown` move a year. Honors `prefers-reduced-motion`.
 
 ## Architecture
 
@@ -90,15 +109,22 @@ js/
 | Job openings rate | openings ÷ (employment + openings), the JOLTS definition |
 | Openings vs Feb ’20 | % change in openings |
 | Unemployed per opening | the dataset's "Available Worker Ratio" — **below 1.0 = labor shortage** |
-| Quit rate / Hire rate | share of employment (JOLTS) |
+| Quit rate / Hire rate | share of employment (JOLTS); the national rate is the employment-weighted average of the state rates |
 
 Color scales are fixed across all months (clamped at the 2nd–98th
-percentile), so colors stay comparable while animating. The map sits on a light
-surface: every level metric uses one yellow–green–blue ramp (light = low,
-dark = high). Change metrics diverge from a pale midpoint at the Feb 2020
-baseline (1.0 for unemployed per opening): red below it and blue above it,
-reversed for "Unemployed vs Feb ’20" so a rise in unemployment reads red.
-Missing months are hatched rather than colored.
+percentile), so colors stay comparable while animating; the legend marks its
+two ends `≤` and `≥` because they also stand for every value beyond them.
+The map sits on a light surface: every level metric uses one
+yellow–green–blue ramp (light = low, dark = high). Change metrics diverge
+from a pale midpoint at the Feb 2020 baseline (1.0 for unemployed per
+opening): red below it and blue above it, reversed for "Unemployed vs Feb ’20"
+so a rise in unemployment reads red. Each side of the midpoint gets half the
+ramp, and half the legend bar, whatever range it covers. Missing months are
+hatched rather than colored.
+
+In the *How states compare* lists a bar runs from the metric's baseline —
+zero, or the midpoint of a change metric — to the state's value, so its length
+is the size of the value or of the change.
 
 ## Data notes
 
@@ -119,6 +145,13 @@ Missing months are hatched rather than colored.
   months stay empty until the next annual release.
 - Counts are in thousands, seasonally adjusted (population is not). National
   figures are recomputed from state sums (rates re-derived, not averaged).
+  The quit and hire rates are the exception: BLS divides them by payroll
+  employment, which this dataset does not carry, and dividing the national
+  counts by the labor-force employment sum would put the nation 0.1–0.2
+  points below the states' published rates. The national rate is therefore the
+  employment-weighted average of the state rates, which reproduces the BLS
+  national rate to its published decimal in about nine months out of ten
+  (2.3% quits and 3.9% hires for February 2020, for example).
 
 ## Updating the data
 

@@ -1,6 +1,6 @@
 /* Hover tooltip for map states / grid tiles. */
 
-import { FMT, fin, fmtMonth, metricById } from '../config.js';
+import { FMT, fin, fmtMonth, metricById } from '../config.js?v=20261117';
 
 export function createTooltip(data, store) {
   const el = d3.select('#tooltip');

@@ -35,10 +35,17 @@ export const fmtMonth = d3.timeFormat('%B %Y');
 export const fmtMonYr = d3.timeFormat('%b ’%y');
 
 /* ── formatters ─────────────────────────────────────────────────── */
+/* A change with its sign: "+" above zero, a true minus below, and neither on a value that
+   rounds to zero (so never "-0.0" or "+0"). */
+const signed = (v, digits) => {
+  const r = +v.toFixed(digits);
+  return (r > 0 ? '+' : '') + d3.format(`,.${digits}f`)(r);
+};
+
 export const FMT = {
   pct1: v => fin(v) ? v.toFixed(1) + '%' : '—',
-  pp:   v => fin(v) ? (v > 0 ? '+' : '') + v.toFixed(1) + ' pp' : '—',
-  pctS: v => fin(v) ? (v > 0 ? '+' : '') + d3.format(',.0f')(v) + '%' : '—',
+  pp:   v => fin(v) ? signed(v, 1) + ' pp' : '—',
+  pctS: v => fin(v) ? signed(v, 0) + '%' : '—',
   r2:   v => fin(v) ? v.toFixed(2) : '—',
   k:    v => fin(v) ? (v >= 1000 ? d3.format(',.2~f')(v / 1000) + 'M'
                                  : d3.format(',.0f')(v) + 'K') : '—',
@@ -58,19 +65,19 @@ export const METRICS = [
     interp: SEQUENTIAL, fmt: FMT.pct1, cell: v => v.toFixed(1),
     note: 'Share of the 16+ population in the labor force' },
   { id: 'lfprD', col: 'lfprD', label: 'Participation vs Feb ’20', kind: 'div', center: 0,
-    fmt: FMT.pp, cell: v => (v > 0 ? '+' : '') + v.toFixed(1),
+    fmt: FMT.pp, cell: v => signed(v, 1),
     note: 'Percentage points vs Feb 2020 · deltas begin Mar 2020' },
   { id: 'ur', col: 'ur', label: 'Unemployment rate', kind: 'seq',
     interp: SEQUENTIAL, fmt: FMT.pct1, cell: v => v.toFixed(1),
     note: 'Unemployed share of the labor force' },
   { id: 'unempD', col: 'unempD', label: 'Unemployed vs Feb ’20', kind: 'div', center: 0, flip: true,
-    fmt: FMT.pctS, cell: v => (v > 0 ? '+' : '') + d3.format('.0f')(v),
+    fmt: FMT.pctS, cell: v => signed(v, 0),
     note: '% change in number unemployed vs Feb 2020' },
   { id: 'openRate', col: 'openRate', label: 'Job openings rate', kind: 'seq',
     interp: SEQUENTIAL, fmt: FMT.pct1, cell: v => v.toFixed(1),
     note: 'Openings ÷ (employment + openings) — JOLTS definition' },
   { id: 'openD', col: 'openD', label: 'Openings vs Feb ’20', kind: 'div', center: 0,
-    fmt: FMT.pctS, cell: v => (v > 0 ? '+' : '') + d3.format('.0f')(v),
+    fmt: FMT.pctS, cell: v => signed(v, 0),
     note: '% change in job openings vs Feb 2020' },
   { id: 'awr', col: 'awr', label: 'Unemployed per opening', kind: 'div', center: 1,
     fmt: FMT.r2, cell: v => v.toFixed(2),

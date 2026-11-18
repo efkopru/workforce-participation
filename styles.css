@@ -31,6 +31,7 @@
   --grid-line: rgba(16, 19, 27, 0.08);
   --ref-line: rgba(16, 19, 27, 0.28);
   --cursor: #10131b;
+  --focus: #0e7490;                         /* keyboard focus ring */
   --track: rgba(16, 19, 27, 0.06);
   --bar-outline: rgba(16, 19, 27, 0.2);     /* keeps pale bars visible on the light track */
   --map-surface: #ffffff;
@@ -73,6 +74,7 @@
   --grid-line: rgba(255, 255, 255, 0.06);
   --ref-line: rgba(255, 255, 255, 0.18);
   --cursor: #ffffff;
+  --focus: #67e8f9;
   --track: rgba(255, 255, 255, 0.05);
   --bar-outline: rgba(255, 255, 255, 0.28);  /* keeps navy bars visible on the dark track */
   --map-surface: #f3f6f9;
@@ -108,6 +110,9 @@ button {
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* one focus ring for every control reached with the keyboard */
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* ── header ─────────────────────────────────────────────────────── */
 .top {
@@ -225,9 +230,11 @@ main {
   transition: opacity 0.15s;
   cursor: pointer;
 }
-#map .state:hover { stroke: #10131b; stroke-width: 1.4; }
-/* dark outline with a white halo stays visible on both pale and navy fills */
-#map .state.selected,
+/* The hovered and the selected state are outlined by paths of their own, drawn above every
+   shape, so no neighbour covers half the line. A dark line with a white halo stays visible
+   on both pale and navy fills; the selected state gets the heavier of the two. */
+#map .state-outline { fill: none; stroke: #10131b; stroke-width: 1.4; stroke-linejoin: round; pointer-events: none; filter: drop-shadow(0 0 1px #fff); }
+#map .state-outline.selected,
 #map .cell.selected rect { stroke: #10131b; stroke-width: 2.4; filter: drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff); }
 
 #map .cell { cursor: pointer; }
@@ -242,15 +249,20 @@ main {
 #map .cell .abbr { font-size: 22px; font-weight: 700; }
 #map .cell .val { font-size: 17px; font-weight: 500; opacity: 0.85; }
 
+/* shown while the tile grid stands in for the map: a pill in the grid's empty top row,
+   where it covers no tile */
 #loadingGeo {
   position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #5b6377;
-  font-size: 13px;
-  letter-spacing: 0.04em;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 11.5px;
+  color: #43505d;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(16, 19, 27, 0.12);
+  border-radius: 999px;
+  padding: 4px 12px;
+  white-space: nowrap;
 }
 
 /* legend: title, colour bar and no-data key on one row, the bar's labels below */
@@ -271,12 +283,14 @@ main {
 #legend .lg-labels {
   grid-column: 2;
   grid-row: 2;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;      /* keeps the middle label at the bar's exact centre */
   font-size: 10px;
   color: #43505d;
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
+#legend .lg-labels span:last-child { text-align: right; }
 #legend .lg-nodata { grid-column: 3; grid-row: 1; display: flex; align-items: center; gap: 6px; font-size: 10px; color: #43505d; }
 #legend .lg-nodata i {
   width: 18px;
@@ -315,14 +329,39 @@ main {
   font-size: 22px;
   font-weight: 600;
   margin: 0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  min-width: 0;
 }
+/* the place name on the left; the state picker and the close button on the right */
+#panel .head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#panel .head-tools { display: flex; align-items: center; gap: 4px; flex: none; }
 #panel .panel-sub { color: var(--faint); font-size: 11.5px; margin: 2px 0 12px; }
 #panel .close-x { color: var(--faint); font-size: 15px; padding: 2px 7px; border-radius: 7px; }
 #panel .close-x:hover { color: var(--text); background: var(--bg3); }
+
+/* "Jump to state": a ghost button with the real <select> lying invisible on top of it, so it
+   opens the platform's own list while the control keeps one short label */
+.state-pick {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.state-pick .pick-narrow { display: none; }      /* phones swap in the shorter label */
+.state-pick svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.state-pick select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  font-family: var(--sans);
+  font-size: 13px;
+}
+.state-pick:has(select:focus-visible) { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* the place name spans the panel; the key numbers and the lists or charts below it
    each get a title, and a divider keeps the two areas apart */
@@ -393,9 +432,12 @@ main {
 #tlLegend i { display: inline-block; width: 14px; height: 2px; vertical-align: middle; margin: 0 4px 0 10px; }
 .spark-legend i:first-child,
 #tlLegend i:first-child { margin-left: 0; }
+/* key for a chart's second state line, set inside the chart's own title */
+.spark-head i { display: inline-block; width: 12px; height: 2px; vertical-align: middle; margin: 0 4px 0 1px; }
 .key-us { background: var(--accent-line); }
 .key-us-spark { background: var(--spark-us); }
 .key-state { background: var(--state-line); }
+.key-extra { background: var(--spark-extra); }
 
 /* national mode lists */
 .rk-section { margin-top: 4px; }
@@ -405,14 +447,21 @@ main {
   display: flex;
   align-items: center;
   gap: 8px;
+  width: 100%;
   padding: 3px 4px;
   border-radius: 7px;
-  cursor: pointer;
+  font: inherit;                 /* a button, but spaced like the text rows around it */
+  text-align: left;
 }
 .rk-row:hover { background: var(--bg3); }
 .rk-row .rk-name { flex: 0 0 118px; font-size: 12px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rk-row .rk-bar-wrap { flex: 1; height: 8px; background: var(--track); border-radius: 4px; overflow: hidden; }
-.rk-row .rk-bar { display: block; height: 100%; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--bar-outline); }
+/* the track clips its bar to the rounded ends; the baseline tick sits outside it and stands taller */
+.rk-row .rk-bar-wrap { position: relative; flex: 1; height: 8px; }
+.rk-row .rk-track { position: absolute; inset: 0; background: var(--track); border-radius: 4px; overflow: hidden; }
+/* a bar grows from its baseline: square there, rounded at the value */
+.rk-row .rk-bar { position: absolute; top: 0; bottom: 0; min-width: 2px; border-radius: 0 4px 4px 0; box-shadow: inset 0 0 0 1px var(--bar-outline); }
+.rk-row .rk-bar.below { border-radius: 4px 0 0 4px; }
+.rk-row .rk-base { position: absolute; top: -3px; bottom: -3px; width: 1px; background: var(--muted); }
 .rk-row .rk-val { flex: 0 0 56px; text-align: right; font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
 .rk-empty { color: var(--faint); font-size: 12px; padding: 6px 2px; }
 
@@ -490,12 +539,14 @@ main {
 /* key for the two lines once a state is selected */
 #tlLegend { margin-left: auto; font-size: 11px; color: var(--muted); white-space: nowrap; }
 
-#timeline { display: block; width: 100%; height: 68px; cursor: crosshair; touch-action: pan-y; }
+#timeline { display: block; width: 100%; height: 68px; cursor: crosshair; touch-action: pan-y; border-radius: 4px; }
 #timeline line.yr { stroke: var(--grid-line); }
 #timeline text.yr { fill: var(--muted); font-weight: 600; }
 #timeline .us-area { fill: var(--us-area); }
 #timeline .us-line { stroke: var(--accent-line); }
-#timeline circle.ch { fill: var(--accent-line); }
+/* chapter markers: the transparent stroke widens the target well beyond the 6px dot */
+#timeline circle.ch { fill: var(--accent-line); opacity: 0.7; stroke: transparent; stroke-width: 12px; pointer-events: all; cursor: pointer; }
+#timeline circle.ch:hover { opacity: 1; }
 #timeline .cursor-dot { fill: var(--accent-line); }
 .ref-line { stroke: var(--ref-line); }
 .state-line { stroke: var(--state-line); }
@@ -541,35 +592,31 @@ main {
 #tooltip .tt-row { display: flex; justify-content: space-between; gap: 16px; font-size: 11.5px; color: var(--muted); padding: 1.5px 0; }
 #tooltip .tt-row .v { color: var(--text); font-variant-numeric: tabular-nums; }
 
-/* ── modal & toast ──────────────────────────────────────────────── */
-#modalBack {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  background: var(--backdrop);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-#modal {
-  position: relative;
+/* ── about dialog & toast ───────────────────────────────────────── */
+/* A native <dialog>, centred by the browser. Its body carries the padding, so a click that
+   lands on the dialog element itself can only be a click on the backdrop (see ui.js). */
+#about {
   width: min(560px, 92vw);
   max-height: 84vh;
+  padding: 0;
   overflow-y: auto;
   background: var(--bg2);
+  color: var(--text);
   border: 1px solid var(--overlay-border);
   border-radius: 16px;
-  padding: 26px 30px;
   box-shadow: var(--overlay-shadow);
 }
-#modal h2 { font-family: var(--serif); margin: 0 0 10px; }
-#modal p, #modal li { color: var(--muted); font-size: 13px; }
-#modal li { margin-bottom: 7px; }
-#modal strong { color: var(--text); }
-#modal .fine { font-size: 11.5px; color: var(--faint); }
+/* the fallback covers browsers whose ::backdrop does not inherit the page's variables */
+#about::backdrop { background: var(--backdrop, rgba(16, 19, 27, 0.4)); backdrop-filter: blur(4px); }
+#about .modal-body { position: relative; padding: 26px 30px; }
+#about h2 { font-family: var(--serif); margin: 0 0 10px; }
+#about p, #about li { color: var(--muted); font-size: 13px; }
+#about li { margin-bottom: 7px; }
+#about strong { color: var(--text); }
+#about .fine { font-size: 11.5px; color: var(--faint); }
 #modalClose { position: absolute; top: 14px; right: 14px; }
 
+/* a live region: it stays in the page, invisible until .show, so its text is announced */
 #toast {
   position: fixed;
   bottom: 26px;
@@ -584,7 +631,10 @@ main {
   padding: 10px 18px;
   border-radius: 10px;
   box-shadow: var(--overlay-shadow);
+  opacity: 0;
+  pointer-events: none;
 }
+#toast.show { opacity: 1; }
 
 /* ── load error screen ──────────────────────────────────────────── */
 .load-error {
@@ -658,15 +708,19 @@ main {
   #map .cell .abbr { font-size: 26px; transform: translateY(12px); }
   #panel { padding: 14px 14px 10px; }
   #panel h2 { font-size: 20px; }
+  .state-pick .pick-wide { display: none; }       /* leaves the long state names room on one line */
+  .state-pick .pick-narrow { display: inline; }
   #timelineWrap { padding: 10px 12px 8px; }
   .tl-row { gap: 10px; }
   #periodLabel { min-width: 0; font-size: 18px; }
-  #modal { width: 94vw; padding: 22px 18px; }
+  #about { width: 94vw; }
+  #about .modal-body { padding: 22px 18px; }
 }
 
 /* Touch screens: larger tap targets. */
 @media (pointer: coarse) {
   .ghost-btn, .view-toggle button { min-height: 40px; }
+  .state-pick select { font-size: 16px; }      /* at 16px iOS does not zoom the page when the list opens */
   .icon-btn { width: 40px; height: 40px; }
   #metricBar button { padding: 9px 14px; }
   #chapters button { padding: 8px 12px; }
