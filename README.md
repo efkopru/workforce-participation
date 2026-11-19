@@ -29,7 +29,8 @@ dependencies to install — **editing the CSV and refreshing the page is all
 it takes to update the data.**
 
 Every module URL carries the same `?v=` tag (`styles.css` and `js/main.js` in
-`index.html`, and each `import` under `js/`), so a browser never pairs a cached
+`index.html`, each `import` under `js/`, and the page that draws the
+[link-preview picture](#link-previews)), so a browser never pairs a cached
 module with a newer one. After changing any of them, replace the tag everywhere
 in one find-and-replace — it is `v=20261118` now.
 
@@ -167,3 +168,26 @@ $env:BLS_CONTACT = 'you@example.com'; node update-data.mjs
 Downloads are cached in `.bls-cache/` (git-ignored); without `BLS_CONTACT` the
 script rebuilds from the cache. Afterwards, update the date range in
 `index.html` (header, description, About text) and in this README.
+
+## Link previews
+
+Pasting the demo's address into a chat or a post shows a card: the title, the
+description and a picture, [docs/link-preview.png](docs/link-preview.png). The
+tags behind it sit in the `<head>` of `index.html`. Sites read them without
+running any script and never see the part of a link after `#`, so every shared
+view gets the same card. The tags hold the demo's full address, so a copy
+hosted somewhere else has to change `og:url` and `og:image`.
+
+The picture is a 1200×630 capture of
+[docs/link-preview.html](docs/link-preview.html), which draws the atlas's
+opening map (participation rate, February 2020) from the CSV with the app's
+own color scale. To retake it, start the app (`node serve.mjs`) and run this
+from the project folder:
+
+```powershell
+& "C:\Program Files\Google\Chrome\Application\chrome.exe" --headless --user-data-dir="$env:TEMP\link-preview-chrome" --window-size=1200,630 --force-device-scale-factor=1 --disable-lcd-text --virtual-time-budget=10000 --screenshot="$PWD\docs\link-preview.png" http://localhost:8123/docs/link-preview.html
+```
+
+The file is replaced a few seconds later (on macOS or Linux only the path to
+Chrome and the two folder variables differ). Sites and apps keep their own copy
+of a card, some for weeks, so a new picture shows up slowly.

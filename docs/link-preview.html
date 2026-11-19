@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<title>Link preview image · The Shape of American Work</title>
+<link rel="icon" href="data:,">
+<!-- The picture that link previews show, docs/link-preview.png, is a 1200×630 capture of this
+     page (the README's "Link previews" section has the command). The map is the atlas's
+     opening view, drawn from the CSV with the app's own color scale, and the colors and
+     fonts come from styles.css, so the picture follows the app when it is captured again. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../styles.css?v=20261118">
+<style>
+/* Sizes are for the full 1200×630 picture; previews show it at a third to a half of that,
+   so nothing that matters is smaller than the legend's labels. */
+html, body { width: 1200px; height: 630px; overflow: hidden; }
+body { padding: 0; }
+.lp {
+  display: grid;
+  grid-template-columns: 440px 628px;   /* the title's longer line is 439px wide at 60px */
+  align-items: center;
+  gap: 36px;
+  width: 1200px;
+  height: 630px;
+  padding: 0 40px 0 56px;
+}
+.lp-kicker {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-text);
+}
+.lp-title {
+  margin: 16px 0 20px;
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 60px;
+  line-height: 1.06;
+  letter-spacing: -0.015em;
+  white-space: nowrap;
+}
+.lp-sub { margin: 0; font-size: 25px; line-height: 1.38; color: var(--muted); text-wrap: balance; }
+.lp-map {
+  margin: 0;
+  padding: 24px 22px 20px;
+  background: var(--map-surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: var(--card-shadow);
+}
+.lp-map svg { display: block; width: 100%; height: auto; }
+.lp-legend {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 20px;
+  row-gap: 5px;
+  margin-top: 18px;
+}
+.lp-legend strong { font-size: 17px; font-weight: 600; }
+.lp-bar { height: 12px; border-radius: 6px; }
+.lp-ends { grid-column: 2; display: flex; justify-content: space-between; font-size: 14px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="lp">
+  <div>
+    <p class="lp-kicker">Workforce Pulse · Interactive atlas</p>
+    <h1 class="lp-title">The Shape of<br>American Work</h1>
+    <p class="lp-sub">How the U.S. labor market broke and rebuilt itself, state by state.</p>
+  </div>
+  <figure class="lp-map">
+    <svg id="lpMap" viewBox="0 0 975 610" role="img"></svg>
+    <figcaption class="lp-legend">
+      <strong id="lpCaption"></strong>
+      <div class="lp-bar" id="lpBar"></div>
+      <div class="lp-ends"><span id="lpLow"></span><span id="lpHigh"></span></div>
+    </figcaption>
+  </figure>
+</div>
+
+<!-- the same files, at the same versions, as index.html -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.2/dist/d3.min.js" integrity="sha256-kSERCY6plQOm9JZzYdK73J2/WM+cZ4yOJ+WwLRoH8ME=" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha256-Jc0CrkhsxQY+AhWk5M+xXeg3AMh6xIusTVfcaq8+u4k=" crossorigin="anonymous"></script>
+<script type="module">
+import { DATA_URL, metricById, fmtMonth } from '../js/config.js?v=20261118';
+import { loadData } from '../js/data.js?v=20261118';
+
+const TOPO_URL = 'https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/states-albers-10m.json';
+
+const [data, topo] = await Promise.all([
+  loadData('../' + DATA_URL),
+  fetch(TOPO_URL).then(r => {
+    if (!r.ok) throw new Error(`HTTP ${r.status} while fetching the map shapes`);
+    return r.json();
+  }),
+]);
+
+/* The view the atlas opens on: the participation rate in the baseline month. That month is in
+   the past for good, so a data update does not make the picture out of date. */
+const metric = metricById('lfpr'), month = data.baseIdx;
+const caption = `${metric.label}, ${fmtMonth(data.periods[month])}`;
+
+const path = d3.geoPath();              // the shapes are already projected to the 975×610 viewBox
+const svg = d3.select('#lpMap').attr('aria-label', `Map of U.S. states shaded by ${caption}`);
+svg.selectAll('path')
+  .data(topojson.feature(topo, topo.objects.states).features.filter(f => data.byState.has(f.properties.name)))
+  .join('path')
+  .attr('d', path)
+  .attr('fill', f => data.fillFor(metric, data.byState.get(f.properties.name).vals[metric.col][month]));
+/* borders a little heavier than the app's, to survive the picture being shown small */
+svg.append('path')
+  .attr('d', path(topojson.mesh(topo, topo.objects.states, (a, b) => a !== b)))
+  .attr('fill', 'none').attr('stroke', '#fff').attr('stroke-width', 1.2).attr('stroke-linejoin', 'round');
+
+const domain = data.domainOf(metric), ramp = data.scaleOf(metric).interpolator();
+d3.select('#lpCaption').text(caption);
+d3.select('#lpBar').style('background', `linear-gradient(to right,${d3.range(23).map(k => ramp(k / 22)).join(',')})`);
+/* the scale is clamped, so its two ends also stand for every value beyond them */
+d3.select('#lpLow').text(`≤ ${metric.fmt(domain[0])}`);
+d3.select('#lpHigh').text(`≥ ${metric.fmt(domain[1])}`);
+
+/* a capture script can wait for this instead of guessing how long the fonts take */
+await document.fonts.ready;
+document.documentElement.dataset.ready = 'true';
+</script>
+</body>
+</html>
