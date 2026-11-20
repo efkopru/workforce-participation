@@ -1,8 +1,8 @@
 # The Shape of American Work
 
 An interactive atlas of the U.S. labor market from January 2020 through
-September 2026, built from U.S. Bureau of Labor Statistics data. It reads
-`State-Grid view.csv` directly (51 jurisdictions × 81 months × 17 indicators).
+October 2026, built from U.S. Bureau of Labor Statistics data. It reads
+`State-Grid view.csv` directly (51 jurisdictions × 82 months × 17 indicators).
 The app does not fetch live data.
 
 **▶ Live demo:** https://efkopru.github.io/workforce-participation/
@@ -134,7 +134,7 @@ is the size of the value or of the change.
 - **Sources:** BLS Local Area Unemployment Statistics (population, labor
   force, participation, employment, unemployment) and state Job Openings and
   Labor Turnover Survey estimates (openings, hires, quits). Rebuilt on
-  November 19, 2026; September 2026 LAUS figures are preliminary.
+  November 20, 2026; October 2026 LAUS figures are preliminary.
 - **October 2025:** BLS did not publish state LAUS estimates. The CSV keeps
   that month empty; the app fills the labor-force values by straight-line
   interpolation between September and November 2025 (`fillInteriorGaps` in
